@@ -1,0 +1,29 @@
+{
+  "name": "mr-timofey/laravel-vue-admin-api",
+  "description": "API backend for the vue-admin package",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "laravel",
+    "admin"
+  ],
+  "require": {
+    "mr-timofey/laravel-aio-images": "^2.4"
+  },
+  "authors": [
+    {
+      "name": "Timofey",
+      "email": "timoxa17@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "MrTimofey\\LaravelVueAdminApi\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": ["MrTimofey\\LaravelVueAdminApi\\ServiceProvider"]
+    }
+  }
+}
