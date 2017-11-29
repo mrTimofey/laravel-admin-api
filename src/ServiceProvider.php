@@ -33,7 +33,6 @@ class ServiceProvider extends Base
     {
         if (str_contains($this->app->version(), 'Lumen')) {
             $router = $this->app;
-            /** @noinspection PhpMethodParametersCountMismatchInspection */
             $router->get(config('admin.path') . '[/{rest:.*}]', function () {
                 return file_get_contents($this->app->basePath() . '/public/admin-dist/app.html');
             });
@@ -77,9 +76,6 @@ class ServiceProvider extends Base
             $router->post('wysiwyg/images/upload', 'Wysiwyg@upload');
 
             $router->post('gallery', 'Gallery@upload');
-
-            $router->get('common-data', 'CommonData@get');
-            $router->post('common-data', 'CommonData@save');
         });
     }
 
