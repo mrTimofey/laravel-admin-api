@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Admin\Http\Controllers;
+namespace MrTimofey\LaravelAdminApi\Http\Controllers;
 
-use App\Images\Image;
+use MrTimofey\LaravelAioImages\ImageModel as Image;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\UploadedFile;
 

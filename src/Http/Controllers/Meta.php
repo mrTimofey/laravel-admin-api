@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Admin\Http\Controllers;
+namespace MrTimofey\LaravelAdminApi\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 

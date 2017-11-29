@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Admin\Http\Controllers;
+namespace MrTimofey\LaravelAdminApi\Http\Controllers;
 
-use App\Admin\Contracts\ModelResolver;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -11,13 +10,14 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Collection;
+use MrTimofey\LaravelAdminApi\Contracts\ModelResolver;
 
 abstract class Base extends Controller
 {
-    const PER_PAGE_PARAM_NAME = 'limit';
-    const PAGE_PARAM_NAME = 'page';
-    const DEFAULT_PER_PAGE = 25;
-    const MAX_PER_PAGE = 100;
+    public const PER_PAGE_PARAM_NAME = 'limit';
+    public const PAGE_PARAM_NAME = 'page';
+    public const DEFAULT_PER_PAGE = 25;
+    public const MAX_PER_PAGE = 100;
 
     /**
      * @var Request

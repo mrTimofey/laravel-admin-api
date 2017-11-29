@@ -1,22 +1,18 @@
 <?php
 
-namespace App\Admin\Http\Controllers;
+namespace MrTimofey\LaravelAdminApi\Http\Controllers;
 
-use App\Images\Image;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use Intervention\Image\ImageManager;
+use MrTimofey\LaravelAioImages\ImageModel as Image;
 
 class Wysiwyg extends Base
 {
-    public function upload(ImageManager $manager) {
+    public function upload() {
         $funcNum = $this->req->get('CKEditorFuncNum');
         try {
             $this->req->validate(['upload' => ['image', 'max:4096']]);
-            $file = $this->req->file('upload');
-            $image = $manager->make($file)->widen(config('admin.wysiwyg.image_upload_width', 1280),
-                function($constraint) { $constraint->upsize(); });
-            $image = Image::upload($image, ['wysiwyg' => true, 'ext' => $file->getClientOriginalExtension()]);
+            $image = Image::upload($this->req->file('upload'), ['wysiwyg' => true, 'ext' => $file->getClientOriginalExtension()]);
             return '<script>window.parent.CKEDITOR.tools.callFunction(\'' . $funcNum . '\', \'' . $image->getPath() . '\');</script>';
         }
         catch (ValidationException $e) {
@@ -31,7 +27,7 @@ class Wysiwyg extends Base
     public function browser(): View
     {
         return view('wysiwyg-browser', [
-            'images' => Image::forWysiwyg()->get(),
+            'images' => Image::where('props->wysiwyg', true)->get(),
             'func_num' => $this->req->get('CKEditorFuncNum')
         ]);
     }

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Admin;
+namespace MrTimofey\LaravelAdminApi;
 
-use App\Admin\Contracts\ModelResolver as ModelResolverContract;
+use MrTimofey\LaravelAdminApi\Contracts\ModelResolver as ModelResolverContract;
 use Illuminate\Support\ServiceProvider as Base;
 
 class ServiceProvider extends Base
@@ -15,7 +15,7 @@ class ServiceProvider extends Base
     /**
      * @var string
      */
-    protected $controllersNamespace = 'App\Admin\Http\Controllers';
+    protected $controllersNamespace = 'MrTimofey\LaravelAdminApi\Http\Controllers';
 
     public function register(): void
     {

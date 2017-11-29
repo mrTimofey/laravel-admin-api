@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Admin;
+namespace MrTimofey\LaravelAdminApi;
 
-use App\Images\Image;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use MrTimofey\LaravelAioImages\ImageModel as Image;
 
 class RequestTransformer
 {

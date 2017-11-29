@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Admin\Http\Controllers;
+namespace MrTimofey\LaravelAdminApi\Http\Controllers;
 
-use App\Admin\ModelHandler;
+use MrTimofey\LaravelAdminApi\ModelHandler;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Pagination\LengthAwarePaginator;

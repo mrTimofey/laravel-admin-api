@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Admin\Contracts;
+namespace MrTimofey\LaravelAdminApi\Contracts;
 
-use App\Admin\ModelHandler;
+use MrTimofey\LaravelAdminApi\ModelHandler;
 
 interface ConfiguresAdminHandler
 {

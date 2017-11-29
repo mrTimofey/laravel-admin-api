@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Admin;
+namespace MrTimofey\LaravelAdminApi;
 
-use App\Admin\Contracts\HasAdminHandler;
-use App\Admin\Contracts\ModelResolver as Contract;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use MrTimofey\LaravelAdminApi\Contracts\HasAdminHandler;
+use MrTimofey\LaravelAdminApi\Contracts\ModelResolver as Contract;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class ModelResolver implements Contract

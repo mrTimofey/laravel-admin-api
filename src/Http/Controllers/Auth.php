@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Admin\Http\Controllers;
+namespace MrTimofey\LaravelAdminApi\Http\Controllers;
 
 use App\Http\Controllers\Auth\LoginController;
-use App\User;
 use Illuminate\Http\JsonResponse;
 
 class Auth extends Base
@@ -20,7 +19,6 @@ class Auth extends Base
 
     public function logout(): void
     {
-        /** @var User $user */
         $user = $this->req->user();
         $user->apiTokens()->delete();
     }
