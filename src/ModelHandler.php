@@ -436,6 +436,7 @@ class ModelHandler
         $realFields = [];
         $casts = $this->item->getCasts();
         $dates = $this->item->getDates();
+        $hidden = $this->item->getHidden();
         foreach ($fields as $field => $conf) {
             if (is_numeric($field)) {
                 $field = $conf;
@@ -446,6 +447,8 @@ class ModelHandler
                     $conf['type'] = 'datetime';
                 } elseif (isset($casts[$field])) {
                     $conf['type'] = $casts[$field];
+                } elseif (\in_array($field, $hidden, true)) {
+                    $conf['type'] = 'password';
                 } elseif (method_exists($this->item, $field)) {
                     $conf['type'] = 'relation';
                     $relation = $this->item->$field();
@@ -658,7 +661,7 @@ class ModelHandler
         if (!$item) {
             $item = clone $this->item;
         }
-        return $this->transform($item, $this->indexFields, true);
+        return $this->transform($item, $this->getIndexFields(), true);
     }
 
     /**
@@ -736,6 +739,7 @@ class ModelHandler
     {
         $data = $this->transformRequestData($fields);
         $relations = [];
+        $hidden = $item->getHidden();
         foreach ($data as $name => $value) {
             $relationName = camel_case($name);
             if (method_exists($item, $relationName)) {
@@ -745,7 +749,7 @@ class ModelHandler
                 } else {
                     $relations[] = [$relation, $value];
                 }
-            } else {
+            } elseif (!\in_array($name, $hidden) || $value || !empty($fields[$name]['nullable'])) {
                 $item->setAttribute($name, $value);
             }
         }

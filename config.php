@@ -62,11 +62,18 @@ return [
             'fa' => 'user'
         ],
 
-        // custom link
+        // custom absolute link
         [
             'title' => 'Back to the site',
             'path' => '/',
             'fa' => 'arrow-left'
+        ],
+
+        // custom admin route
+        [
+            'title' => 'Edit user [1]',
+            'route' => '/entity/users/item/1',
+            'fa' => 'user-o'
         ],
 
         // link group
