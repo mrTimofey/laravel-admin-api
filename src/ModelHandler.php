@@ -457,6 +457,9 @@ class ModelHandler
                     }
                 }
             }
+            if (!isset($conf['title'])) {
+                $conf['title'] = mb_convert_case(snake_case($field, ' '), MB_CASE_TITLE);
+            }
             $realFields[$field] = $conf;
         }
         return $realFields;
@@ -663,7 +666,7 @@ class ModelHandler
      */
     public function transformItem()
     {
-        return $this->transform($this->item, $this->itemFields);
+        return $this->transform($this->item, $this->getItemFields());
     }
 
     public function validate(bool $validateOnlyPresent = false): void
