@@ -25,7 +25,8 @@ class ServiceProvider extends Base
 
     public function boot(): void
     {
-        $this->config = $this->app->make('config')->get('admin');
+        $this->publishes([__DIR__ . '/../config.php' => config_path('admin_api.php')], 'config');
+        $this->config = $this->app->make('config')->get('admin_api');
         $this->registerRoutes();
     }
 
@@ -33,14 +34,11 @@ class ServiceProvider extends Base
     {
         if (str_contains($this->app->version(), 'Lumen')) {
             $router = $this->app;
-            $router->get(config('admin.path') . '[/{rest:.*}]', function () {
-                return file_get_contents($this->app->basePath() . '/public/admin-dist/app.html');
-            });
+            $router->get($this->config['frontend_path'] . '[/{rest:.*}]', $this->controllersNamespace . '\View@app');
         } else {
             $router = $this->app->make('router');
-            $router->get($this->config['path'] . '/{rest?}', function () {
-                return file_get_contents(public_path('admin-dist/app.html'));
-            })->middleware($this->config['middleware'])->where('rest', '.*');
+            $router->get($this->config['frontend_path'] . '/{rest?}', $this->controllersNamespace . '\View@app')
+                ->where('rest', '.*');
         }
 
         $router->group([
@@ -89,10 +87,9 @@ class ServiceProvider extends Base
     public function registerRequestTransformer(): void
     {
         $this->app->singleton(RequestTransformer::class, function () {
-            $imageConfig = $this->app->make('config')->get('images');
             return new RequestTransformer(
-                $imageConfig['upload_path'],
-                $imageConfig['public_path']
+                $this->config['upload_path'],
+                $this->config['upload_public_path']
             );
         });
     }

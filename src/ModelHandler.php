@@ -572,8 +572,9 @@ class ModelHandler
         }
     }
 
-    protected function loadRelations(Builder $q, array $fields): void
+    protected function loadRelations(Builder $q, ?array $fields): void
     {
+        if (!$fields) return;
         $q->with(collect($fields)
             ->keys()
             ->filter(function(string $field) {

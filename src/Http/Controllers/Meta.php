@@ -8,16 +8,16 @@ class Meta extends Base
 {
     public function locale(): JsonResponse
     {
-        return json_response([
-            'locale' => config('admin.locale', config('app.locale', 'en')),
-            'fallback_locale' => config('admin.fallback_locale', config('app.fallback_locale', 'en'))
+        return $this->jsonResponse([
+            'locale' => config('admin_api.locale', config('app.locale', 'en')),
+            'fallback_locale' => config('admin_api.fallback_locale', config('app.fallback_locale', 'en'))
         ]);
     }
 
     public function meta(): JsonResponse
     {
         return $this->jsonResponse([
-            'nav' => config('admin.nav'),
+            'nav' => config('admin_api.nav'),
             'entities' => $this->resolver->getMeta()
         ]);
     }
