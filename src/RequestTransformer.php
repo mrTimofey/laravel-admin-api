@@ -147,4 +147,31 @@ class RequestTransformer
         $v = $req->get('name');
         return $item->exists() && !$v ? $item->getAttribute($name) : $v;
     }
+
+    protected function processInteger(string $name, Request $req): int
+    {
+        $v = $req->get($name);
+        return $v === null ? null : (int)$req->get($name);
+    }
+
+    protected function processInt(string $name, Request $req): int
+    {
+        return $this->processInteger($name, $req);
+    }
+
+    protected function processNumber(string $name, Request $req): int
+    {
+        return $this->processInteger($name, $req);
+    }
+
+    protected function processNumeric(string $name, Request $req): int
+    {
+        return $this->processInteger($name, $req);
+    }
+
+    protected function processFloat(string $name, Request $req): float
+    {
+        $v = $req->get($name);
+        return $v === null ? null : (float)str_replace(',', '.', $v);
+    }
 }
