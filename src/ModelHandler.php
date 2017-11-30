@@ -590,7 +590,7 @@ class ModelHandler
         );
     }
 
-    protected function transformRequestData(array $fields): array
+    protected function transformRequestData(Model $item, array $fields): array
     {
         $data = [];
         $transformer = app(RequestTransformer::class);
@@ -598,7 +598,8 @@ class ModelHandler
             $data[$name] = $transformer->transform(
                 $name,
                 $config['type'] ?? 'text',
-                $this->req
+                $this->req,
+                $item
             );
         }
         return $data;
@@ -737,7 +738,7 @@ class ModelHandler
 
     protected function fillAndSave(Model $item, array $fields): Model
     {
-        $data = $this->transformRequestData($fields);
+        $data = $this->transformRequestData($item, $fields);
         $relations = [];
         $hidden = $item->getHidden();
         foreach ($data as $name => $value) {
@@ -749,7 +750,7 @@ class ModelHandler
                 } else {
                     $relations[] = [$relation, $value];
                 }
-            } elseif (!\in_array($name, $hidden) || $value || !empty($fields[$name]['nullable'])) {
+            } else {
                 $item->setAttribute($name, $value);
             }
         }

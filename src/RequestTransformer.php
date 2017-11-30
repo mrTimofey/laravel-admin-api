@@ -2,6 +2,7 @@
 
 namespace MrTimofey\LaravelAdminApi;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use MrTimofey\LaravelAioImages\ImageModel as Image;
@@ -50,19 +51,20 @@ class RequestTransformer
      * @param string $name request field name
      * @param string $type field type
      * @param Request $req request object
+     * @param Model $item item to be saved
      * @return mixed
      */
-    public function transform(string $name, string $type, Request $req)
+    public function transform(string $name, string $type, Request $req, Model $item)
     {
         // call custom callback function
         if (!empty($this->customTransformers[$type])) {
-            return $this->customTransformers[$type]($req->get($name), $name, $req, $type);
+            return $this->customTransformers[$type]($req->get($name), $name, $req, $item, $type);
         }
 
         // call local method
         $method = 'process' . studly_case($type);
         if (method_exists($this, $method)) {
-            return $this->$method($name, $req);
+            return $this->$method($name, $req, $item);
         }
 
         // return as-is
@@ -138,5 +140,11 @@ class RequestTransformer
     protected function processBool(string $name, Request $req): bool
     {
         return $this->processBoolean($name, $req);
+    }
+
+    protected function processPassword(string $name, Request $req, Model $item): ?string
+    {
+        $v = $req->get('name');
+        return $item->exists() && !$v ? $item->getAttribute($name) : $v;
     }
 }
