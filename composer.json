@@ -1,12 +1,13 @@
 {
   "name": "mr-timofey/laravel-admin-api",
-  "description": "API backend for the vue-admin package",
+  "description": "API backend for administration panels",
   "type": "library",
   "license": "MIT",
   "keywords": [
     "laravel",
     "admin",
-    "vue"
+    "vue",
+    "api"
   ],
   "require": {
     "mr-timofey/laravel-aio-images": "^0.0.2",
@@ -25,7 +26,9 @@
   },
   "extra": {
     "laravel": {
-      "providers": ["MrTimofey\\LaravelAdminApi\\ServiceProvider"]
+      "providers": [
+        "MrTimofey\\LaravelAdminApi\\ServiceProvider"
+      ]
     }
   }
 }

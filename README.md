@@ -7,9 +7,11 @@ composer require mr-timofey/laravel-admin-api
 ```
 
 Follow installation instructions from
-[mr-timofey/laravel-aio-images](https://github.com/mrTimofey/laravel-aio-images)
+[mr-timofey/laravel-aio-images](https://github.com/mrTimofey/laravel-aio-images),
 [mr-timofey/laravel-simple-tokens](https://github.com/mrTimofey/laravel-simple-tokens)
 to properly install dependencies.
+
+Add `MrTimofey\LaravelAdminApi\ServiceProvider` to your `app.providers` config.
 
 ```bash
 php artisan vendor:publish --provider="MrTimofey\LaravelAdminApi\ServiceProvider"
