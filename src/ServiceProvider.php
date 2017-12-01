@@ -26,7 +26,9 @@ class ServiceProvider extends Base
     public function boot(): void
     {
         $this->publishes([__DIR__ . '/../config.php' => config_path('admin_api.php')], 'config');
-        $this->config = $this->app->make('config')->get('admin_api');
+        $config = $this->app->make('config');
+        $this->config = $config->get('admin_api');
+        $config->set('aio_images.pipes', $config->get('aio_images.pipes') + ['admin-thumb' => [['heighten', 120]]]);
         $this->registerRoutes();
     }
 
