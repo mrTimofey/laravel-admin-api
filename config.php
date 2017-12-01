@@ -29,17 +29,19 @@ return [
         'image_upload_size' => [1280, null]
     ],
 
-    /**
-     * Where to upload files
-     * IMPORTANT: images will not be uploaded here! Images are controlled by mr-timofey/laravel-aio-images package!
-     * @see config('aio_images')
-     */
-    'upload_path' => public_path('storage/uploads'),
+    'upload' => [
+        /**
+         * Where to upload files
+         * IMPORTANT: images will not be uploaded here! Images are controlled by mr-timofey/laravel-aio-images package!
+         * @see config('aio_images')
+         */
+        'path' => public_path('storage/uploads'),
 
-    /**
-     * HTTP accessible path for uploaded files
-     */
-    'upload_public_path' => '/storage/uploads',
+        /**
+         * HTTP accessible path for uploaded files
+         */
+        'public_path' => '/storage/uploads',
+    ],
 
     /**
      * List model classes here

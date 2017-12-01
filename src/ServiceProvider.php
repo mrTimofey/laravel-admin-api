@@ -86,8 +86,8 @@ class ServiceProvider extends Base
     {
         $this->app->singleton(RequestTransformer::class, function () {
             return new RequestTransformer(
-                $this->config['upload_path'],
-                $this->config['upload_public_path']
+                $this->config['upload']['path'],
+                $this->config['upload']['public_path']
             );
         });
     }

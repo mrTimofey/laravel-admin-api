@@ -18,7 +18,9 @@ class Meta extends Base
     {
         return $this->jsonResponse([
             'nav' => config('admin_api.nav'),
-            'entities' => $this->resolver->getMeta()
+            'entities' => $this->resolver->getMeta(),
+            'wysiwyg' => config('admin_api.wysiwyg'),
+            'upload' => config('admin_api.upload')
         ]);
     }
 }
