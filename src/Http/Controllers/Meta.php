@@ -20,7 +20,7 @@ class Meta extends Base
             'nav' => config('admin_api.nav'),
             'entities' => $this->resolver->getMeta(),
             'wysiwyg' => config('admin_api.wysiwyg'),
-            'upload' => config('admin_api.upload')
+            'upload_path' => config('admin_api.upload.public_path')
         ]);
     }
 }
