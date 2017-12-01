@@ -461,7 +461,7 @@ class ModelHandler
                 }
             }
             if (!isset($conf['title'])) {
-                $conf['title'] = mb_convert_case(snake_case($field, ' '), MB_CASE_TITLE);
+                $conf['title'] = title_case($field);
             }
             $realFields[$field] = $conf;
         }
