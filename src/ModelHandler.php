@@ -461,7 +461,7 @@ class ModelHandler
                 }
             }
             if (!isset($conf['title'])) {
-                $conf['title'] = title_case($field);
+                $conf['title'] = title_case(preg_replace('/[\_\-\s]+/', ' ', $field));
             }
             $realFields[$field] = $conf;
         }
