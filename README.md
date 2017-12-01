@@ -23,3 +23,12 @@ Open `config/admin_api.php` for further configuration instructions.
 
 Supported frontend solutions:
 * https://github.com/mrTimofey/vue-admin
+
+## Authentication and authorization
+
+This package uses [mr-timofey/laravel-simple-tokens](https://github.com/mrTimofey/laravel-simple-tokens)
+by default to maintain authorization logic.
+You can change middleware in `admin_api.api_middleware` config and replace default controller with
+`app()->bind(\MrTimofey\LaravelAdminApi\Http\Controllers\Auth::class, YourController::class)`
+
+Just set `admin_api.api_middleware` to empty array to remove authorization.
