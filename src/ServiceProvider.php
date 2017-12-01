@@ -45,10 +45,8 @@ class ServiceProvider extends Base
             'namespace' => $this->controllersNamespace,
             'prefix' => $this->config['api_prefix']
         ], function () use ($router) {
-            $router->post('auth', 'Auth@login');
-            $router->post('auth/remember', 'Auth@remember');
+            $router->post('auth', 'Auth@authenticate');
             $router->get('locale', 'Meta@locale');
-            $router->delete('auth', 'Auth@logout');
         });
 
         $router->group([

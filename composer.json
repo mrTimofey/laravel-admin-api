@@ -9,7 +9,8 @@
     "vue"
   ],
   "require": {
-    "mr-timofey/laravel-aio-images": "^0.0.2"
+    "mr-timofey/laravel-aio-images": "^0.0.2",
+    "mr-timofey/laravel-simple-tokens": "^0.0.1"
   },
   "authors": [
     {

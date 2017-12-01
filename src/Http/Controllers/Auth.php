@@ -4,28 +4,9 @@ namespace MrTimofey\LaravelAdminApi\Http\Controllers;
 
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Http\JsonResponse;
+use MrTimofey\LaravelSimpleTokens\AuthenticatesUsers;
 
 class Auth extends Base
 {
-    protected function userResponse()
-    {
-        return ['name' => 'Admin', 'api_token' => 'token', 'remember_token' => 'token'];
-    }
-
-    public function user()
-    {
-        return $this->userResponse();
-    }
-
-    public function login()
-    {
-        return $this->userResponse();
-    }
-
-    public function remember()
-    {
-        return $this->userResponse();
-    }
-
-    public function logout() {}
+    use AuthenticatesUsers;
 }

@@ -103,8 +103,8 @@ class RequestTransformer
                 try {
                     $uploaded = $image ? Image::upload($file)->id : $this->upload($file);
                     $req[] = $uploaded;
+                } catch (\Throwable $e) {
                 }
-                catch (\Throwable $e) {}
             }
             return $res;
         }
@@ -127,7 +127,7 @@ class RequestTransformer
     protected function processGallery(string $name, Request $req)
     {
         $images = $req->get($name) ?: [];
-        return array_combine($images, array_map(function($sort) {
+        return array_combine($images, array_map(function ($sort) {
             return ['sort' => (int)$sort];
         }, array_keys($images)));
     }
@@ -144,7 +144,7 @@ class RequestTransformer
 
     protected function processPassword(string $name, Request $req, Model $item): ?string
     {
-        $v = $req->get('name');
+        $v = $req->get($name);
         return $item->exists() && !$v ? $item->getAttribute($name) : $v;
     }
 
