@@ -42,9 +42,8 @@
         <?php endforeach; ?>
 	</div>
 <?php else: ?>
-	<h1 style="text-align:center;opacity:0.5">Нет загруженных картинок</h1>
+	<h1 style="text-align:center;opacity:0.5"><?php echo trans('admin_api::messages.no_images') ?></h1>
 <?php endif; ?>
-<p style="text-align:center">Для загрузки новой картинки закройте это окно и загрузите картинку на вкладке
-	"Загрузить"</p>
+<p style="text-align:center"><?php echo trans('admin_api::messages.upload_info') ?></p>
 </body>
 </html>

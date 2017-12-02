@@ -28,6 +28,7 @@ class ServiceProvider extends Base
     {
         $this->publishes([__DIR__ . '/../config.php' => config_path('admin_api.php')], 'config');
         $this->loadViewsFrom(__DIR__ . '/../views', 'admin_api');
+        $this->loadTranslationsFrom(__DIR__.'/../lang', 'admin_api');
         $config = $this->app->make('config');
         $this->config = $config->get('admin_api');
         if ($config->get('aio_images.pipes')) {
