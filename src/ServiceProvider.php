@@ -19,6 +19,7 @@ class ServiceProvider extends Base
 
     public function register(): void
     {
+        $this->mergeConfigFrom(__DIR__ . '/../config.php', 'admin_api');
         $this->registerModelResolver();
         $this->registerRequestTransformer();
     }
