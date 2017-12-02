@@ -1,5 +1,10 @@
 API backend for administration panels.
 
+## Requirements
+
+* PHP 7.1
+* Laravel 5.5
+
 ## Install
 
 ```bash

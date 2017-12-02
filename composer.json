@@ -10,6 +10,7 @@
     "api"
   ],
   "require": {
+    "php": ">=7.1.0",
     "mr-timofey/laravel-aio-images": "0.*",
     "mr-timofey/laravel-simple-tokens": "0.*"
   },

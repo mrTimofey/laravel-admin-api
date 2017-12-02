@@ -26,7 +26,9 @@ return [
      */
     'wysiwyg' => [
         // width/height for uploaded images, remove to use original
-        'image_upload_size' => [1280, null]
+        'image_upload_size' => [1280, null],
+        // upload image validation
+        'image_upload_rules' => ['image', 'max:4096']
     ],
 
     'upload' => [
@@ -42,6 +44,12 @@ return [
          */
         'public_path' => '/storage/uploads',
     ],
+
+    /**
+     * Pipe to resize thumbnails.
+     * @see https://github.com/mrTimofey/laravel-aio-images
+     */
+    'thumbnail_pipe' => [['heighten', 120]],
 
     /**
      * List model classes here

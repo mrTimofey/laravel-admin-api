@@ -79,7 +79,7 @@ abstract class Base extends Controller
         }
 
         // merge with additional data if any
-        if ($add && count($add)) {
+        if ($add && \count($add)) {
             $data = array_merge(
                 $data,
                 $add instanceof Collection ? $add->all() : $add
