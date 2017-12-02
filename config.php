@@ -22,7 +22,7 @@ return [
     'api_middleware' => ['auth:api'],
 
     /**
-     * WYSYWIG editor config
+     * WYSIWYG editor config
      */
     'wysiwyg' => [
         // width/height for uploaded images, remove to use original
