@@ -30,7 +30,8 @@ class ServiceProvider extends Base
         $config = $this->app->make('config');
         $this->config = $config->get('admin_api');
         if ($config->get('aio_images.pipes')) {
-            $config->set('aio_images.pipes', $config->get('aio_images.pipes') + ['admin-thumb' => $this->config['thumbnail_pipe']]);
+            $config->set('aio_images.pipes', $config->get('aio_images.pipes') +
+                ['admin-thumb' => $this->config['thumbnail_pipe'] ?? [['heighten', 120]]]);
         }
         $this->registerRoutes();
     }
