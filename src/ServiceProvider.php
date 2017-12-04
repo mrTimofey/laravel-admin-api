@@ -53,7 +53,7 @@ class ServiceProvider extends Base
             'namespace' => $this->controllersNamespace,
             'prefix' => $this->config['api_prefix']
         ], function () use ($router) {
-            $router->post('auth', 'Auth@authenticate');
+            $router->post('auth', 'Auth@authenticate')->middleware($this->config['auth_middleware']);
             $router->get('locale', 'Meta@locale');
         });
 

@@ -22,6 +22,11 @@ return [
     'api_middleware' => ['auth:api'],
 
     /**
+     * Middleware for authentication API
+     */
+    'auth_middleware' => ['throttle:5'],
+
+    /**
      * WYSIWYG editor config
      */
     'wysiwyg' => [
