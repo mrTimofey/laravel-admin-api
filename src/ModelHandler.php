@@ -13,137 +13,123 @@ use Illuminate\Http\Request;
 use MrTimofey\LaravelAdminApi\Contracts\ConfiguresAdminHandler;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
+/**
+ * This class handles all actions performed with any model.
+ * You can write your own handler for any model class by extending this class.
+ * To attach your handler implementation to your model @see \MrTimofey\LaravelAdminApi\Contracts\HasAdminHandler
+ */
 class ModelHandler
 {
     /**
      * Model item (may be existing or just new instance)
-     *
      * @var Model
      */
     protected $item;
 
     /**
      * API entity name (URL argument), useful with different model contexts
-     *
      * @var string
      */
     protected $name;
 
     /**
      * Model pages title
-     *
      * @var string
      */
     protected $title;
 
     /**
      * Item editing page subtitle
-     *
      * @var string
      */
     protected $itemTitle;
 
     /**
      * Item creating page subtitle
-     *
      * @var string
      */
     protected $createTitle;
 
     /**
      * Request instance
-     *
      * @var Request
      */
     protected $req;
 
     /**
      * Array of allowed actions.
-     *
      * @var array|null
      */
     protected $abilities;
 
     /**
      * Use common policies while authorizing
-     *
      * @var bool
      */
     protected $policies = false;
 
     /**
      * Prefix for policy actions
-     *
      * @var string|null
      */
     protected $policiesPrefix;
 
     /**
      * Field names to perform text search on
-     *
      * @var string[]|null
      */
     protected $searchableFields;
 
     /**
      * Rewritten search callback
-     *
      * @var callable|null
      */
     protected $searchCallback;
 
     /**
      * Query modifiers applying before any other query processing
-     *
      * @var callable[]
      */
     protected $preQueryModifiers = [];
 
     /**
      * Query modifiers applying just before query execution
-     *
      * @var callable[]
      */
     protected $postQueryModifiers = [];
 
     /**
      * Fields used as filters in index page
-     *
      * @var array|null
      */
     protected $filterFields;
 
     /**
      * Fields exposed in index response
-     *
      * @var array|null
      */
     protected $indexFields;
 
     /**
      * Fields exposed in item response
-     *
      * @var array|null
      */
     protected $itemFields;
 
     /**
-     * Validation rules per each action ('create', 'simpleCreate', 'update')
-     *
+     * Validation rules
      * @var array
      */
     protected $validationRules = [];
 
     /**
      * Validation messages
-     *
      * @var array
      */
     protected $validationMessages = [];
 
     /**
      * Rewritten validation function
-     *
      * @var callable|null
      */
     protected $validationCallback;
@@ -157,7 +143,7 @@ class ModelHandler
     }
 
     /**
-     * Name is defined by URL chunk used to work with this model through an API.
+     * Name is defined by URL chunk and used in API routes.
      * @return string
      */
     public function getName(): string
@@ -166,7 +152,7 @@ class ModelHandler
     }
 
     /**
-     * Sets a model item to work with.
+     * Set a model item to work with.
      * @param Model $item
      */
     public function setItem(Model $item): void
@@ -222,7 +208,7 @@ class ModelHandler
     }
 
     /**
-     * Tells handler to use policies while authorizing actions (all actions are allowed by default).
+     * Tell handler to use policies while authorizing actions (all actions are allowed by default).
      * @param bool $use
      * @param null|string $prefix policy method name prefix
      * @return ModelHandler
@@ -361,6 +347,11 @@ class ModelHandler
         return $this->createTitle;
     }
 
+    /**
+     * Get index fields.
+     * This method will try to guess about them using $visible model fields if index fields are not set explicitly.
+     * @return array|null
+     */
     public function getIndexFields(): ?array
     {
         if ($this->indexFields) {
@@ -372,6 +363,11 @@ class ModelHandler
         return null;
     }
 
+    /**
+     * Get item editing fields.
+     * This method will try to guess about them using $fillable model fields if item fields are not set explicitly.
+     * @return array|null
+     */
     public function getItemFields(): ?array
     {
         if ($this->itemFields) {
@@ -431,6 +427,14 @@ class ModelHandler
         }
     }
 
+    /**
+     * Fill some required but not explicitly set information for each field.
+     * Field type information is based on $casts, $dates, $hidden and relation method existence.
+     * Title is generated from field name by converting it to title case.
+     * @param array $fields
+     * @param array $default
+     * @return array
+     */
     protected function prepareFields(array $fields, array $default = []): array
     {
         $realFields = [];
@@ -478,6 +482,21 @@ class ModelHandler
         $this->applyQueryModifiers($q, $this->postQueryModifiers);
     }
 
+    /**
+     * Apply query filters from request query string.
+     * Supported actions:
+     *  - filters[field]=value - field equals to value
+     *  - filters[!field]=value - field not equals to value
+     *  - filters[>~field]=value - field is more than or equals to value
+     *  - filters[<~field]=value - field is less than or equals to value
+     *  - filters[>field]=value - field is more than value
+     *  - filters[<field]=value - field is less than value
+     *  - filters[field][]=value1&filters[field][]=value2... - field equals to one of provided values (IN)
+     *  - filters[!field][]=value1&filters[!field][]=value2... - field not equals to any of provided values (NOT IN)
+     *  - filters[field] - field value is not null (IS NOT NULL)
+     *  - filters[!field] - field value is null (IS NULL)
+     * @param Builder $q
+     */
     protected function applyFilters(Builder $q): void
     {
         if ($filters = (array)$this->req->get('filters')) {
@@ -519,6 +538,13 @@ class ModelHandler
         }
     }
 
+    /**
+     * Apply model scopes from request query string.
+     * Syntax:
+     *  - ?scopes[scopeName] - scope without parameters
+     *  - ?scopes[scopeName][]=param1&scopes[scopeName][]=param2 - call scopeName('param1', 'param2')
+     * @param Builder $q
+     */
     protected function applyScopes(Builder $q): void
     {
         if ($scopes = (array)$this->req->get('scopes')) {
@@ -538,6 +564,11 @@ class ModelHandler
         }
     }
 
+    /**
+     * Simple text search with LIKE.
+     * Uses predefined field list or callback.
+     * @param Builder $q
+     */
     protected function applySearch(Builder $q): void
     {
         if (!$this->isSearchable()) {
@@ -555,6 +586,13 @@ class ModelHandler
         }
     }
 
+    /**
+     * Apply simple sorting based on request query string.
+     * Syntax:
+     *  - sort[field] - order by asc
+     *  - sort[field]=asc|desc|0|1 - (0 - desc, 1 - asc)
+     * @param Builder $q
+     */
     protected function applySort(Builder $q): void
     {
         if ($sort = $this->req->get('sort')) {
@@ -562,25 +600,27 @@ class ModelHandler
             foreach ($sort as $k => $v) {
                 if (is_numeric($k)) {
                     $field = $v;
-                    $dir = 'asc';
+                    $asc = true;
                 } else {
                     $field = $k;
-                    $dir = $v;
-                    if ($dir === '0') {
-                        $dir = 'desc';
-                    } elseif ($dir === '1') {
-                        $dir = 'asc';
-                    }
+                    $asc = $v === '0' || $v === 'asc';
                 }
 
-                $q->orderBy($field, $dir);
+                $q->orderBy($field, $asc ? 'asc' : 'desc');
             }
         }
     }
 
+    /**
+     * Add relations eager loading based on field list.
+     * @param Builder $q
+     * @param array|null $fields
+     */
     protected function loadRelations(Builder $q, ?array $fields): void
     {
-        if (!$fields) return;
+        if (!$fields) {
+            return;
+        }
         $q->with(collect($fields)
             ->keys()
             ->filter(function(string $field) {
@@ -590,6 +630,14 @@ class ModelHandler
         );
     }
 
+    /**
+     * Use RequestTransformer to transform each value based on field definition before model item is saved.
+     * @param Model $item model item about to save
+     * @param array $fields fields definition, each field from this array will have corresponding value
+     *                      even if there is no such value in the request
+     * @return array [field_name => value] map
+     * @see RequestTransformer
+     */
     protected function transformRequestData(Model $item, array $fields): array
     {
         $data = [];
@@ -618,7 +666,16 @@ class ModelHandler
         return $q;
     }
 
-    protected function transform(Model $item, ?array $fields, bool $fullRelations = false)
+    /**
+     * Transform model item to API-ready array with all required fields.
+     * @param Model $item
+     * @param array|null $fields fields definition
+     * @param bool $fullRelations load full relation objects or just their IDs
+     *              IMPORTANT: editable relation fields are forced to load only IDs since frontend field implementation
+     *              should interact with API to load full objects.
+     * @return array
+     */
+    protected function transform(Model $item, ?array $fields, bool $fullRelations = false): array
     {
         $relations = [];
         if ($fields) {
@@ -631,7 +688,7 @@ class ModelHandler
                     }
                     $related = $item->getRelation($field);
                     if ($fullRelations && empty($config['editable'])) {
-                        $visible[] = $field;
+                        $relations[$field] = $related;
                     } else {
                         if ($related instanceof Collection) {
                             $relations[$field] = $related->pluck('id')->toArray();
@@ -655,9 +712,9 @@ class ModelHandler
 
     /**
      * @param Model $item
-     * @return mixed
+     * @return array
      */
-    public function transformIndexItem(?Model $item = null)
+    public function transformIndexItem(?Model $item = null): array
     {
         if (!$item) {
             $item = clone $this->item;
@@ -666,9 +723,9 @@ class ModelHandler
     }
 
     /**
-     * @return mixed
+     * @return array
      */
-    public function transformItem()
+    public function transformItem(): array
     {
         return $this->transform($this->item, $this->getItemFields());
     }
@@ -740,7 +797,6 @@ class ModelHandler
     {
         $data = $this->transformRequestData($item, $fields);
         $relations = [];
-        $hidden = $item->getHidden();
         foreach ($data as $name => $value) {
             $relationName = camel_case($name);
             if (method_exists($item, $relationName)) {
@@ -777,6 +833,12 @@ class ModelHandler
         $this->fillAndSave($this->item, $this->getItemFields());
     }
 
+    /**
+     * Update item's single field from request.
+     * Request data must contain:
+     *  - __field = field name
+     *  - [files__]field_name = mixed|UploadedFile
+     */
     public function fastUpdate(): void
     {
         $this->validate(true);

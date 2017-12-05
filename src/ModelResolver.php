@@ -8,9 +8,14 @@ use MrTimofey\LaravelAdminApi\Contracts\HasAdminHandler;
 use MrTimofey\LaravelAdminApi\Contracts\ModelResolver as Contract;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
+/**
+ * Resolves model instances.
+ * @see Contract
+ */
 class ModelResolver implements Contract
 {
     /**
+     * config('admin_api.models')
      * @var array
      */
     protected $classes;
@@ -21,6 +26,7 @@ class ModelResolver implements Contract
     protected $req;
 
     /**
+     * Actions to check permissions
      * @var array
      */
     protected static $actions = [
@@ -63,6 +69,9 @@ class ModelResolver implements Contract
         return null;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function resolveHandler(string $name, Model $instance): ModelHandler
     {
         return $instance instanceof HasAdminHandler ?
@@ -70,6 +79,11 @@ class ModelResolver implements Contract
             new ModelHandler($instance, $name, $this->req);
     }
 
+    /**
+     * Converts string keyed array to a regular array, puts key to a 'name' field of each element.
+     * @param array|null $source
+     * @return array|null
+     */
     protected function convertToArray(?array $source): ?array
     {
         if (!$source) {
@@ -93,10 +107,13 @@ class ModelResolver implements Contract
         foreach ($this->classes as $k => $class) {
             /** @var Model $model */
             $model = new $class;
+
+            // default url chunk is same as table name with underscores replaced by dashes
             $name = is_numeric($k) ? str_replace('_', '-', $model->getTable()) : $k;
             $handler = $this->resolveHandler($name, $model);
 
             $ar[$name] = [
+                // map 'actionName' => true|false (action permitted or not)
                 'permissions' => array_combine(
                     static::$actions,
                     array_map(function ($action) use ($handler) {
@@ -108,6 +125,7 @@ class ModelResolver implements Contract
                         }
                     }, static::$actions)
                 ),
+                // convert string keyed arrays to regular arrays for JavaScript environment
                 'filter_fields' => $this->convertToArray($handler->getFilterFields()),
                 'index_fields' => $this->convertToArray($handler->getIndexFields()),
                 'item_fields' => $this->convertToArray($handler->getItemFields()),

@@ -11,21 +11,18 @@ class RequestTransformer
 {
     /**
      * File upload path
-     *
      * @var string
      */
     protected $uploadPath;
 
     /**
      * Public uploaded files path
-     *
      * @var string
      */
     protected $publicPath;
 
     /**
      * Custom transformers
-     *
      * @var callable[]
      */
     protected $customTransformers = [];
@@ -69,7 +66,7 @@ class RequestTransformer
 
         // return as-is
         $v = $req->get($name);
-        if (is_numeric($v)) {
+        if (\is_int($v) || \is_float($v) || \is_bool($v)) {
             return $v;
         }
         return $v ?: null;
@@ -90,6 +87,7 @@ class RequestTransformer
      * @return null|string|array
      * @throws \Throwable
      * @throws \Exception
+     * @throws \Symfony\Component\HttpFoundation\File\Exception\FileException
      */
     protected function processFile(string $name, Request $req, $image = false)
     {
@@ -118,6 +116,7 @@ class RequestTransformer
      * @return array|null|string
      * @throws \Throwable
      * @throws \Exception
+     * @throws \Symfony\Component\HttpFoundation\File\Exception\FileException
      */
     protected function processImage(string $name, Request $req)
     {

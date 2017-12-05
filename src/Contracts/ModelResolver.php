@@ -5,6 +5,11 @@ namespace MrTimofey\LaravelAdminApi\Contracts;
 use MrTimofey\LaravelAdminApi\ModelHandler;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Used with service container to bind ModelResolver class.
+ * You can bind your own implementation if needed.
+ * @see \MrTimofey\LaravelAdminApi\ModelResolver
+ */
 interface ModelResolver
 {
     /**
