@@ -138,6 +138,10 @@ class ModelHandler
     {
         $this->item = $item;
         $this->name = $name;
+        if ($req->filled('__json_data') && starts_with($req->header('Content-Type', ''), 'multipart/form-data')) {
+            $req = clone $req;
+            $req->request->add(json_decode($req->get('__json_data'), true));
+        }
         $this->req = $req;
         $this->setItem($item);
     }
