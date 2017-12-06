@@ -3,7 +3,7 @@ API backend for administration panels.
 ## Requirements
 
 * PHP 7.1
-* Laravel 5.5
+* Laravel 5
 
 ## Install
 
@@ -16,7 +16,7 @@ Follow installation instructions from
 [mr-timofey/laravel-simple-tokens](https://github.com/mrTimofey/laravel-simple-tokens)
 to properly install dependencies.
 
-Add `MrTimofey\LaravelAdminApi\ServiceProvider` to your `app.providers` config.
+**For Laravel <= 5.4** add `MrTimofey\LaravelAdminApi\ServiceProvider` to your `app.providers` config.
 
 ```bash
 php artisan vendor:publish --provider="MrTimofey\LaravelAdminApi\ServiceProvider"
