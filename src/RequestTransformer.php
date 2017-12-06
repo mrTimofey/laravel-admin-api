@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use MrTimofey\LaravelAioImages\ImageModel as Image;
+use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class RequestTransformer
 {
@@ -85,6 +87,7 @@ class RequestTransformer
      * @param Request $req
      * @param bool $image is image
      * @return null|string|array
+     * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
      * @throws \Throwable
      * @throws \Exception
      * @throws \Symfony\Component\HttpFoundation\File\Exception\FileException
@@ -101,12 +104,15 @@ class RequestTransformer
                 try {
                     $uploaded = $image ? Image::upload($file)->id : $this->upload($file);
                     $req[] = $uploaded;
-                } catch (\Throwable $e) {
-                }
+                } catch (\Throwable $e) {}
             }
             return $res;
         }
-        return $image ? Image::upload($files)->id : $this->upload($files);
+        try {
+            return $image ? Image::upload($files)->id : $this->upload($files);
+        } catch (FileNotFoundException $e) {
+            throw new BadRequestHttpException(trans('admin_api::messages.upload_bad_file', [], $req->getPreferredLanguage()));
+        }
     }
 
     /**
@@ -114,6 +120,7 @@ class RequestTransformer
      * @param string $name
      * @param Request $req
      * @return array|null|string
+     * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
      * @throws \Throwable
      * @throws \Exception
      * @throws \Symfony\Component\HttpFoundation\File\Exception\FileException
@@ -144,7 +151,7 @@ class RequestTransformer
     protected function processPassword(string $name, Request $req, Model $item): ?string
     {
         $v = $req->get($name);
-        return $item->exists() && !$v ? $item->getAttribute($name) : $v;
+        return $item->exists && !$v ? $item->getAttribute($name) : $v;
     }
 
     protected function processInteger(string $name, Request $req): ?int
