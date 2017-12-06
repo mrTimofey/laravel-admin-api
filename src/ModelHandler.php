@@ -138,6 +138,8 @@ class ModelHandler
     {
         $this->item = $item;
         $this->name = $name;
+        // workaround to make multipart/form-data requests type safe since JSON is type safe
+        // frontend can send any files + __json_data field to pass any other data
         if ($req->filled('__json_data') && starts_with($req->header('Content-Type', ''), 'multipart/form-data')) {
             $req = clone $req;
             $req->request->add(json_decode($req->get('__json_data'), true));
