@@ -31,10 +31,9 @@ class ServiceProvider extends Base
         $this->loadTranslationsFrom(__DIR__.'/../lang', 'admin_api');
         $config = $this->app->make('config');
         $this->config = $config->get('admin_api');
-        if ($config->get('aio_images.pipes')) {
-            $config->set('aio_images.pipes', $config->get('aio_images.pipes') +
-                ['admin-thumb' => $this->config['thumbnail_pipe'] ?? [['heighten', 120]]]);
-        }
+        $pipes = $config->get('aio_images.pipes', []);
+        $pipes['admin-thumb'] = $this->config['thumbnail_pipe'] ?? [['heighten', 120]];
+        $config->set('aio_images.pipes', $pipes);
         $this->registerRoutes();
     }
 
