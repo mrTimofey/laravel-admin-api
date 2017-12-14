@@ -470,7 +470,7 @@ class ModelHandler
                     }
                 }
             }
-            if (!isset($conf['title']) && !isset($conf['placeholder'])) {
+            if (!isset($conf['title']) && !isset($conf['placeholder']) && !isset($conf['label'])) {
                 $conf['title'] = title_case(preg_replace('/[\_\-\s]+/', ' ', $field));
             }
             $realFields[$field] = $conf;
