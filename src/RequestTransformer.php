@@ -85,14 +85,14 @@ class RequestTransformer
      * Upload file and return field value (relative public path for files and image ID for images).
      * @param string $name
      * @param Request $req
+     * @param Model $item
      * @param bool $image is image
      * @return null|string|array
-     * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
-     * @throws \Throwable
      * @throws \Exception
      * @throws \Symfony\Component\HttpFoundation\File\Exception\FileException
+     * @throws \Throwable
      */
-    protected function processFile(string $name, Request $req, $image = false)
+    protected function processFile(string $name, Request $req, Model $item, bool $image = false)
     {
         $files = $req->file('files__' . $name);
         if (!$files) {
@@ -119,15 +119,15 @@ class RequestTransformer
      * Create an image model item.
      * @param string $name
      * @param Request $req
+     * @param Model $item
      * @return array|null|string
-     * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
-     * @throws \Throwable
      * @throws \Exception
      * @throws \Symfony\Component\HttpFoundation\File\Exception\FileException
+     * @throws \Throwable
      */
-    protected function processImage(string $name, Request $req)
+    protected function processImage(string $name, Request $req, Model $item)
     {
-        return $this->processFile($name, $req, true);
+        return $this->processFile($name, $req, $item, true);
     }
 
     protected function processGallery(string $name, Request $req)
