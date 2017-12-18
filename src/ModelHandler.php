@@ -533,7 +533,15 @@ class ModelHandler
                     $field = substr($field, 1);
                 }
 
-                if (\is_array($value)) {
+                if (method_exists($this->item, $field)) {
+                    if ($value === null) {
+                        $not ? $q->doesntHave($field) : $q->has($field);
+                    } elseif (!\is_array($value) || !empty($value)) {
+                        $q->whereHas($field, function (Builder $q) use ($value) {
+                            $q->whereKey($value);
+                        });
+                    }
+                } elseif (\is_array($value)) {
                     $q->whereIn($field, $value, 'and', $not);
                 } elseif ($value === null) {
                     $q->where($field, $not ? false : true);
