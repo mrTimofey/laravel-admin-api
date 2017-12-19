@@ -861,9 +861,20 @@ class ModelHandler
         $this->fillAndSave($this->item, [$field => $fields[$field]]);
     }
 
+    public function bulkUpdate(): void
+    {}
+
+    /**
+     * @throws \Exception
+     */
     public function destroy(): void
     {
         $this->item->delete();
+    }
+
+    public function bulkDestroy(array $keys): void
+    {
+        $this->item->newQuery()->whereKey($keys)->delete();
     }
 
     // public function action{ActionName}(): mixed

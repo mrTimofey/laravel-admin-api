@@ -172,9 +172,25 @@ class Crud extends Base
      */
     public function destroy(string $modelName, $id): void
     {
-        $instance = $this->resolveModel($modelName, $id);
-        $handler = $this->resolveHandler($instance, $modelName);
+        $item = $this->resolveModel($modelName, $id);
+        $handler = $this->resolveHandler($item, $modelName);
         $handler->authorize('destroy');
         $handler->destroy();
+    }
+
+    public function bulkDestroy(string $modelName): void
+    {
+        $instance = $this->resolveModel($modelName);
+        $handler = $this->resolveHandler($instance, $modelName);
+        $handler->authorize('destroy');
+        $handler->bulkDestroy($this->req->get('keys'));
+    }
+
+    public function bulkUpdate(string $modelName): void
+    {
+        $instance = $this->resolveModel($modelName);
+        $handler = $this->resolveHandler($instance, $modelName);
+        $handler->authorize('update');
+        $handler->bulkUpdate();
     }
 }
