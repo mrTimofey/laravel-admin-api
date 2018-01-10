@@ -12,6 +12,11 @@ return [
     'frontend_path' => env('ADMIN_ENTRY', 'admin'),
 
     /**
+     * API guard
+     */
+    'api_guard' => 'api',
+
+    /**
      * API path prefix
      */
     'api_prefix' => env('ADMIN_PATH', 'api/admin'),
