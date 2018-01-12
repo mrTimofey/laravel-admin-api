@@ -12,19 +12,21 @@ return [
     'frontend_path' => env('ADMIN_ENTRY', 'admin'),
 
     /**
-     * API guard
-     */
-    'api_guard' => 'api',
-
-    /**
      * API path prefix
      */
     'api_prefix' => env('ADMIN_PATH', 'api/admin'),
 
     /**
+     * API guard
+     */
+    'api_guard' => 'api',
+
+    /**
      * API routes middleware
      */
-    'api_middleware' => ['auth:api'],
+    'api_middleware' => [
+        'auth:api' // should use same guard as api_guard!
+    ],
 
     /**
      * Middleware for authentication API
