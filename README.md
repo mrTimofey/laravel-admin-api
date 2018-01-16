@@ -1,4 +1,4 @@
-API backend for administration panels.
+API backend for administration panels based on [vue-admin-front](https://github.com/mrTimofey/vue-admin) package.
 
 ## Requirements
 
@@ -23,10 +23,6 @@ php artisan vendor:publish --provider="MrTimofey\LaravelAdminApi\ServiceProvider
 ```
 
 Open `config/admin_api.php` for further configuration instructions.
-
-## Frontend
-
-This package is designed to work with [vue-admin-front](https://github.com/mrTimofey/vue-admin).
 
 ## Authentication and authorization
 
