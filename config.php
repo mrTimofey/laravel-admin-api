@@ -3,16 +3,19 @@
 return [
     /**
      * Admin frontend SPA HTML markup
+     * Must be same with vue-admin-front buildDest + index.html
      */
     'frontend_entry' => public_path('admin-dist/index.html'),
 
     /**
      * Admin frontend SPA HTML markup, catch-all path prefix
+     * Must be same with vue-admin-front basePath config
      */
     'frontend_path' => env('ADMIN_ENTRY', 'admin'),
 
     /**
      * API path prefix
+     * Must be same with vue-admin-front apiRoot config
      */
     'api_prefix' => env('ADMIN_PATH', 'api/admin'),
 
