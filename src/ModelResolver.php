@@ -113,6 +113,7 @@ class ModelResolver implements Contract
             $handler = $this->resolveHandler($name, $model);
 
             $ar[$name] = [
+                'primary' => $model->getKeyName(),
                 // map 'actionName' => true|false (action permitted or not)
                 'permissions' => array_combine(
                     static::$actions,
