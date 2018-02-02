@@ -701,7 +701,7 @@ class ModelHandler
             $visible = [];
             $appends = [];
             foreach ($fields as $field => $config) {
-                if (method_exists($item, $field)) {
+                if (method_exists($item, $field) || !$item->hasGetMutator($field)) {
                     if (!$item->relationLoaded($field)) {
                         $item->load($field);
                     }
@@ -710,7 +710,7 @@ class ModelHandler
                         $relations[$field] = $related;
                     } else {
                         if ($related instanceof Collection) {
-                            $relations[$field] = $related->pluck('id')->toArray();
+                            $relations[$field] = $related->modelKeys();
                         } else {
                             $relations[$field] = $related ? $related->getKey() : null;
                         }
@@ -818,7 +818,7 @@ class ModelHandler
         $relations = [];
         foreach ($data as $name => $value) {
             $relationName = camel_case($name);
-            if (method_exists($item, $relationName)) {
+            if (method_exists($item, $relationName) && !$item->hasSetMutator($relationName)) {
                 $relation = $item->$relationName();
                 if ($relation instanceof BelongsTo) {
                     $relation->associate($value);
