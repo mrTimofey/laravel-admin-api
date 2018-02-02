@@ -701,7 +701,7 @@ class ModelHandler
             $visible = [];
             $appends = [];
             foreach ($fields as $field => $config) {
-                if (method_exists($item, $field) || !$item->hasGetMutator($field)) {
+                if (method_exists($item, $field) && !$item->hasGetMutator($field)) {
                     if (!$item->relationLoaded($field)) {
                         $item->load($field);
                     }
