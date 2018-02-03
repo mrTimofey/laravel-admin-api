@@ -549,7 +549,7 @@ class ModelHandler
                 } elseif (\is_array($value)) {
                     $q->whereIn($field, $value, 'and', $not);
                 } elseif ($value === null) {
-                    $q->where($field, $not ? false : true);
+                    $q->whereNull($field, 'and', !$not);
                 } else {
                     $q->where($field, $op, $value);
                 }
