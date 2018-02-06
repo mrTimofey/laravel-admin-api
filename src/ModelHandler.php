@@ -20,11 +20,6 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
  */
 class ModelHandler
 {
-    public const CASTS_TO_TYPE = [
-        'bool' => 'checkbox',
-        'boolean' => 'checkbox'
-    ];
-
     /**
      * Model item (may be existing or just new instance)
      * @var Model
@@ -461,7 +456,7 @@ class ModelHandler
                 if (\in_array($field, $dates, true)) {
                     $conf['type'] = 'datetime';
                 } elseif (isset($casts[$field])) {
-                    $conf['type'] = static::CASTS_TO_TYPE[$casts[$field]] ?? $casts[$field];
+                    $conf['type'] = $casts[$field];
                 } elseif (\in_array($field, $hidden, true)) {
                     $conf['type'] = 'password';
                 } elseif (method_exists($this->item, $field)) {
