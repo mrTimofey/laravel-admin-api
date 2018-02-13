@@ -9,7 +9,7 @@ class ModelActionCalled extends SingleModelEvent {
     public $actionName;
 
     public function __construct(string $entity, $userKey, $key, string $name) {
-        parent::__construct($entity, $key, $userKey);
+        parent::__construct($entity, $userKey, $key);
         $this->actionName = $name;
     }
 }
