@@ -3,6 +3,7 @@
 namespace MrTimofey\LaravelAdminApi;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use MrTimofey\LaravelAioImages\ImageModel as Image;
@@ -74,6 +75,11 @@ class RequestTransformer
         return $v ?: null;
     }
 
+    /**
+     * @param UploadedFile $file
+     * @return string
+     * @throws \Symfony\Component\HttpFoundation\File\Exception\FileException
+     */
     protected function upload(UploadedFile $file): string
     {
         $name = time() . str_random(12) . '.' . ($file->getClientOriginalExtension() ?: $file->guessExtension());
@@ -88,6 +94,8 @@ class RequestTransformer
      * @param Model $item
      * @param bool $image is image
      * @return null|string|array
+     * @throws \InvalidArgumentException
+     * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
      * @throws \Exception
      * @throws \Symfony\Component\HttpFoundation\File\Exception\FileException
      * @throws \Throwable
@@ -102,14 +110,14 @@ class RequestTransformer
             $res = [];
             foreach ($files as $file) {
                 try {
-                    $uploaded = $image ? Image::upload($file)->id : $this->upload($file);
+                    $uploaded = $image ? Image::upload($file)->getKey() : $this->upload($file);
                     $req[] = $uploaded;
                 } catch (\Throwable $e) {}
             }
             return $res;
         }
         try {
-            return $image ? Image::upload($files)->id : $this->upload($files);
+            return $image ? Image::upload($files)->getKey() : $this->upload($files);
         } catch (FileNotFoundException $e) {
             throw new BadRequestHttpException(trans('admin_api::messages.upload_bad_file', [], $req->getPreferredLanguage()));
         }
@@ -121,6 +129,8 @@ class RequestTransformer
      * @param Request $req
      * @param Model $item
      * @return array|null|string
+     * @throws \InvalidArgumentException
+     * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
      * @throws \Exception
      * @throws \Symfony\Component\HttpFoundation\File\Exception\FileException
      * @throws \Throwable
@@ -130,9 +140,15 @@ class RequestTransformer
         return $this->processFile($name, $req, $item, true);
     }
 
-    protected function processGallery(string $name, Request $req)
+    protected function processGallery(string $name, Request $req, Model $item): array
     {
         $images = $req->get($name) ?: [];
+        /** @var BelongsToMany $rel */
+        $rel = $item->$name();
+        // prevent update event from triggering
+        if ($images === $rel->pluck($rel->getRelated()->getKeyName())->all()) {
+            return $images;
+        }
         return array_combine($images, array_map(function ($sort) {
             return ['sort' => (int)$sort];
         }, array_keys($images)));
