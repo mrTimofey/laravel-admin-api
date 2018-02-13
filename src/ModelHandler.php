@@ -819,6 +819,7 @@ class ModelHandler
         $fk = $rel->getForeignKeyName();
         $parentKey = $rel->getParentKey();
         $toSync = $rel->getRelated()->newQuery()->find((array)$ids);
+        /** @var Collection $toDelete */
         $toDelete = $rel->get()->keyBy($rel->getRelated()->getKeyName());
 
         /** @var Model $item */
