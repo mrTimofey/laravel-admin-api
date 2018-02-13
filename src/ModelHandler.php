@@ -834,7 +834,7 @@ class ModelHandler
         }
 
         /** @var Model $item */
-        foreach ($toDelete->toArray() as $item) {
+        foreach ($toDelete as $item) {
             $item->setAttribute($fk, null);
             $item->save();
             $res['detached'][] = $item->getKey();
