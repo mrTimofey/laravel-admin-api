@@ -134,6 +134,12 @@ class ModelHandler
      */
     protected $validationCallback;
 
+    /**
+     * Last item changes array
+     * @var array|null
+     */
+    protected $lastSaveChanges;
+
     public function __construct(Model $item, string $name, Request $req)
     {
         $this->item = $item;
@@ -400,6 +406,11 @@ class ModelHandler
     public function isSearchable(): bool
     {
         return $this->searchableFields && \count($this->searchableFields) > 0 || $this->searchCallback;
+    }
+
+    public function getLastSaveChanges(): ?array
+    {
+        return $this->lastSaveChanges;
     }
 
     /**
@@ -791,10 +802,17 @@ class ModelHandler
         }
     }
 
-    protected function syncHasMany(HasMany $rel, $ids): void
+    /**
+     * Sync HasMany relation and return changes.
+     * @param HasMany $rel
+     * @param $ids
+     * @return array
+     */
+    protected function syncHasMany(HasMany $rel, $ids): array
     {
-        if (!\is_array($ids) && empty($ids)) {
-            return;
+        $res = ['attached' => [], 'detached' => []];
+        if (!\is_array($ids) || empty($ids)) {
+            return $res;
         }
 
         $fk = $rel->getForeignKeyName();
@@ -807,6 +825,7 @@ class ModelHandler
             if ($item->getAttribute($fk) !== $parentKey) {
                 $item->setAttribute($fk, $parentKey);
                 $item->save();
+                $res['attached'][] = $item->getKey();
             }
             if ($toDelete->has($item->getKey())) {
                 $toDelete->forget($item->getKey());
@@ -817,7 +836,10 @@ class ModelHandler
         foreach ($toDelete->toArray() as $item) {
             $item->setAttribute($fk, null);
             $item->save();
+            $res['detached'][] = $item->getKey();
         }
+
+        return $res;
     }
 
     /**
@@ -830,6 +852,7 @@ class ModelHandler
     {
         $data = $this->transformRequestData($item, $fields);
         $relations = [];
+        $changes = [];
         foreach ($data as $name => $value) {
             $relationName = camel_case($name);
             if (method_exists($item, $relationName) && !$item->hasSetMutator($relationName)) {
@@ -837,20 +860,28 @@ class ModelHandler
                 if ($relation instanceof BelongsTo) {
                     $relation->associate($value);
                 } else {
-                    $relations[] = [$relation, $value];
+                    $relations[$name] = [$relation, $value];
                 }
             } else {
                 $item->setAttribute($name, $value);
             }
         }
+        // memorize changes
+        foreach ($item->getDirty() as $name => $newValue) {
+            $changes[$name] = [$item->getOriginal($name), $newValue];
+        }
         $item->saveOrFail();
-        foreach ($relations as [$relation, $value]) {
+        foreach ($relations as $name => [$relation, $value]) {
             if ($relation instanceof BelongsToMany) {
-                $relation->sync($value);
+                $changes[$name] = $relation->sync($value);
             } elseif ($relation instanceof HasMany) {
-                $this->syncHasMany($relation, $value);
+                $changes[$name] = $this->syncHasMany($relation, $value);
             }
         }
+
+        // set changes
+        $this->lastSaveChanges = $changes;
+
         return $item;
     }
 
@@ -888,10 +919,18 @@ class ModelHandler
         $this->fillAndSave($this->item, [$field => $fields[$field]]);
     }
 
-    public function bulkUpdate(): void
-    {}
+    /**
+     * Update multiple items.
+     * @return array
+     */
+    public function bulkUpdate(): array
+    {
+        // TODO
+        return [];
+    }
 
     /**
+     * Destroy item.
      * @throws \Exception
      */
     public function destroy(): void
@@ -899,10 +938,21 @@ class ModelHandler
         $this->item->delete();
     }
 
-    public function bulkDestroy(array $keys): void
+    /**
+     * Destroy multiple items and return their keys.
+     * @param array $keys
+     * @return array
+     */
+    public function bulkDestroy(array $keys): array
     {
-        $this->item->newQuery()->whereKey($keys)->delete();
+        $realKeys = $this->item->newQuery()->whereKey($keys)->pluck($this->item->getKeyName())->all();
+        if (!empty($realKeys)) {
+            $this->item->newQuery()->whereKey($realKeys)->delete();
+        }
+        return $realKeys;
     }
 
     // public function action{ActionName}(): mixed
+
+    // public function bulk{ActionName}(): mixed
 }

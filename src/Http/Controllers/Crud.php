@@ -2,6 +2,13 @@
 
 namespace MrTimofey\LaravelAdminApi\Http\Controllers;
 
+use MrTimofey\LaravelAdminApi\Events\BulkActionCalled;
+use MrTimofey\LaravelAdminApi\Events\BulkDestroyed;
+use MrTimofey\LaravelAdminApi\Events\BulkUpdated;
+use MrTimofey\LaravelAdminApi\Events\ModelActionCalled;
+use MrTimofey\LaravelAdminApi\Events\ModelCreated;
+use MrTimofey\LaravelAdminApi\Events\ModelDestroyed;
+use MrTimofey\LaravelAdminApi\Events\ModelUpdated;
 use MrTimofey\LaravelAdminApi\ModelHandler;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
@@ -82,7 +89,32 @@ class Crud extends Base
     }
 
     /**
-     * Call model handler method named 'action{ActionName}()' on a model item.
+     * Call model handler method named 'bulk{ActionName}()' on a model.
+     * @param string $modelName
+     * @param string $action action name
+     * @return JsonResponse
+     * @throws \RuntimeException
+     * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+     */
+    public function bulkAction(string $modelName, string $action): JsonResponse
+    {
+        $instance = $this->resolveModel($modelName);
+        $handler = $this->resolveHandler($instance, $modelName);
+        $action = studly_case($action);
+        $method = 'bulk' . $action;
+        if (!method_exists($handler, $method)) {
+            throw new NotFoundHttpException($modelName . ' handler does not have method ' . $method);
+        }
+        $handler->authorize($action);
+        $res = $handler->$method();
+        event(new BulkActionCalled($modelName, $action));
+        return $this->jsonResponse($res);
+    }
+
+    /**
+     * Call model handler method named 'action{ActionName}()' on a model instance.
      * @param string $modelName
      * @param $id
      * @param string $action action name
@@ -96,12 +128,15 @@ class Crud extends Base
     {
         $instance = $this->resolveModel($modelName, $id);
         $handler = $this->resolveHandler($instance, $modelName);
-        $method = 'action' . studly_case($action);
+        $action = studly_case($action);
+        $method = 'action' . $action;
         if (!method_exists($handler, $method)) {
             throw new NotFoundHttpException($modelName . ' handler does not have method ' . $method);
         }
         $handler->authorize($action);
-        return $this->jsonResponse($handler->$method());
+        $res = $handler->$method();
+        event(new ModelActionCalled($modelName, $instance->getKey(), $action));
+        return $this->jsonResponse($res);
     }
 
     /**
@@ -121,6 +156,7 @@ class Crud extends Base
         $handler = $this->resolveHandler($instance, $modelName);
         $handler->authorize('create');
         $item = $handler->create();
+        event(new ModelCreated($modelName, $item->getKey()));
         $handler->setItem($item->fresh());
         return $this->jsonResponse($handler->transformItem());
     }
@@ -143,6 +179,7 @@ class Crud extends Base
         $handler = $this->resolveHandler($item, $modelName);
         $handler->authorize('update');
         $handler->update();
+        event(new ModelUpdated($modelName, $item->getKey(), $handler->getLastSaveChanges()));
         $handler->setItem($item->fresh());
         return $this->jsonResponse($handler->transformItem());
     }
@@ -164,6 +201,7 @@ class Crud extends Base
         $handler = $this->resolveHandler($item, $modelName);
         $handler->authorize('update');
         $handler->fastUpdate();
+        event(new ModelUpdated($modelName, $item->getKey(), $handler->getLastSaveChanges()));
         $handler->setItem($item->fresh());
         return $this->jsonResponse($handler->transformIndexItem());
     }
@@ -184,6 +222,7 @@ class Crud extends Base
         $handler = $this->resolveHandler($item, $modelName);
         $handler->authorize('destroy');
         $handler->destroy();
+        event(new ModelDestroyed($modelName, $id));
     }
 
     /**
@@ -199,7 +238,8 @@ class Crud extends Base
         $instance = $this->resolveModel($modelName);
         $handler = $this->resolveHandler($instance, $modelName);
         $handler->authorize('destroy');
-        $handler->bulkDestroy($this->req->get('keys'));
+        $destroyed = $handler->bulkDestroy($this->req->get('keys'));
+        event(new BulkDestroyed($modelName, $destroyed));
     }
 
     /**
@@ -215,6 +255,7 @@ class Crud extends Base
         $instance = $this->resolveModel($modelName);
         $handler = $this->resolveHandler($instance, $modelName);
         $handler->authorize('update');
-        $handler->bulkUpdate();
+        $changes = $handler->bulkUpdate();
+        event(new BulkUpdated($modelName, $changes));
     }
 }

@@ -71,9 +71,9 @@ class ServiceProvider extends Base
             $router->post('entity/{model}', 'Crud@create');
             $router->post('entity/{model}/bulk', 'Crud@bulkUpdate');
             $router->get('entity/{model}/{id}', 'Crud@item');
-            $router->post('entity/{model}/simple', 'Crud@simpleCreate');
             $router->post('entity/{model}/{id}', 'Crud@update');
             $router->post('entity/{model}/{id}/fast', 'Crud@fastUpdate');
+            $router->post('entity/{model}/action/{action}', 'Crud@bulkAction');
             $router->post('entity/{model}/{id}/action/{action}', 'Crud@itemAction');
             $router->delete('entity/{model}/{id}', 'Crud@destroy');
 
