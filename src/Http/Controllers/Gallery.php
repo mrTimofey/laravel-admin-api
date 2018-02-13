@@ -10,6 +10,11 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class Gallery extends Base
 {
+    /**
+     * @return JsonResponse
+     * @throws \Exception
+     * @throws \Throwable
+     */
     public function upload(): JsonResponse
     {
         $ids = [];

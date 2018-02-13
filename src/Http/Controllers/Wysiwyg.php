@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 class Wysiwyg extends Base
 {
-    public function upload(ImageManager $intervention)
+    public function upload(ImageManager $intervention): string
     {
         $funcNum = $this->req->get('CKEditorFuncNum');
         try {
@@ -41,7 +41,7 @@ class Wysiwyg extends Base
     public function browser(): View
     {
         return view('admin_api::wysiwyg_browser', [
-            'images' => Image::where('id', 'like', 'wysiwyg-%')->get(),
+            'images' => Image::query()->where('id', 'like', 'wysiwyg-%')->get(),
             'func_num' => $this->req->get('CKEditorFuncNum'),
             'thumb_pipe' => 'admin-thumb'
         ]);

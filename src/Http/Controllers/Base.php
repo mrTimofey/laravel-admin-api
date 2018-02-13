@@ -60,6 +60,7 @@ abstract class Base extends Controller
         // suppose $p is a query builder
         if (!$p instanceof Paginator) {
             /** @var Builder $p */
+            /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
             $p = $p->paginate($this->perPage($perPage));
         }
         /** @var Paginator $p */

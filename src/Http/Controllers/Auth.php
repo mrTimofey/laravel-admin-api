@@ -2,9 +2,7 @@
 
 namespace MrTimofey\LaravelAdminApi\Http\Controllers;
 
-use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Auth\TokenGuard;
-use Illuminate\Http\JsonResponse;
 use MrTimofey\LaravelSimpleTokens\AuthenticatesUsers;
 
 class Auth extends Base

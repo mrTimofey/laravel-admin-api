@@ -58,7 +58,7 @@ class ModelHandler
 
     /**
      * Array of allowed actions.
-     * @var array|null
+     * @var string[]|null
      */
     protected $abilities;
 
@@ -138,7 +138,7 @@ class ModelHandler
     {
         $this->item = $item;
         $this->name = $name;
-        // workaround to make multipart/form-data requests type safe since JSON is type safe
+        // workaround to make multipart/form-data requests preserve data types by using JSON
         // frontend can send any files + __json_data field to pass any other data
         if ($req->filled('__json_data') && starts_with($req->header('Content-Type', ''), 'multipart/form-data')) {
             $req = clone $req;
@@ -204,7 +204,7 @@ class ModelHandler
 
     /**
      * Set array of allowed actions (index, create, simpleCreate, update, destroy, [...custom actions]).
-     * @param array $abilities
+     * @param string[] $abilities
      * @return ModelHandler
      */
     public function allowActions(array $abilities): self
@@ -214,7 +214,9 @@ class ModelHandler
     }
 
     /**
-     * Tell handler to use policies while authorizing actions (all actions are allowed by default).
+     * Use policies while authorizing actions (all actions are allowed by default).
+     * Any action will be authorized with '{$prefix}{$actionName}' policy method.
+     * Example: UserPolicy::adminUpdate for a POST 'users/item/12' with $prefix set to 'admin'.
      * @param bool $use
      * @param null|string $prefix policy method name prefix
      * @return ModelHandler
@@ -404,6 +406,7 @@ class ModelHandler
      * Authorize action.
      * Throw 403 exception if user is not permitted to perform this action.
      * @param string $action
+     * @throws \RuntimeException user does not implement Authorizable interface
      * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
      */
     public function authorize(string $action): void
@@ -411,6 +414,9 @@ class ModelHandler
         if ($this->policies) {
             /** @var Authorizable $user */
             $user = $this->req->user();
+            if (!$user instanceof Authorizable) {
+                throw new \RuntimeException('User object must implement ' . Authorizable::class . ' to be checked with policies');
+            }
             if (!$user->can(
                 $this->policiesPrefix ? ($this->policiesPrefix . studly_case($action)) : $action,
                 $this->item)) {
@@ -423,6 +429,7 @@ class ModelHandler
     }
 
     /**
+     * Call query modifier functions.
      * @param Builder $q
      * @param callable[] $modifiers
      */
@@ -434,9 +441,9 @@ class ModelHandler
     }
 
     /**
-     * Fill some required but not explicitly set information for each field.
-     * Field type information is based on $casts, $dates, $hidden and relation method existence.
-     * Title is generated from field name by converting it to title case.
+     * Fill some required but not explicitly set information for each field when possible.
+     * Try to configure fields with $casts, $dates, $hidden and relation methods when type is not set explicitly.
+     * Generate field title from a field name if no title/placeholder/label provided.
      * @param array $fields
      * @param array $default
      * @return array
@@ -448,10 +455,13 @@ class ModelHandler
         $dates = $this->item->getDates();
         $hidden = $this->item->getHidden();
         foreach ($fields as $field => $conf) {
+            // when only field name is provided
             if (is_numeric($field)) {
                 $field = $conf;
                 $conf = $default;
             }
+
+            // try to set type
             if (!isset($conf['type'])) {
                 if (\in_array($field, $dates, true)) {
                     $conf['type'] = 'datetime';
@@ -470,9 +480,12 @@ class ModelHandler
                     }
                 }
             }
+
+            // generate title
             if (!isset($conf['title']) && !isset($conf['placeholder']) && !isset($conf['label'])) {
                 $conf['title'] = title_case(preg_replace('/[\_\-\s]+/', ' ', $field));
             }
+
             $realFields[$field] = $conf;
         }
         return $realFields;
@@ -807,6 +820,12 @@ class ModelHandler
         }
     }
 
+    /**
+     * @param Model $item
+     * @param array $fields
+     * @return Model
+     * @throws \Throwable
+     */
     protected function fillAndSave(Model $item, array $fields): Model
     {
         $data = $this->transformRequestData($item, $fields);
@@ -835,12 +854,19 @@ class ModelHandler
         return $item;
     }
 
+    /**
+     * @return Model
+     * @throws \Throwable
+     */
     public function create(): Model
     {
         $this->validate();
         return $this->fillAndSave($this->item->newInstance(), $this->getItemFields());
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function update(): void
     {
         $this->validate();
@@ -852,6 +878,7 @@ class ModelHandler
      * Request data must contain:
      *  - __field = field name
      *  - [files__]field_name = mixed|UploadedFile
+     * @throws \Throwable
      */
     public function fastUpdate(): void
     {
