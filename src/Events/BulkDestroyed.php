@@ -2,13 +2,8 @@
 
 namespace MrTimofey\LaravelAdminApi\Events;
 
-class BulkDestroyed
+class BulkDestroyed extends ModelEvent
 {
-    /**
-     * @var string
-     */
-    public $entity;
-
     /**
      * Deleted items keys
      * @var array
@@ -16,7 +11,7 @@ class BulkDestroyed
     public $keys;
 
     public function __construct(string $entity, array $keys) {
-        $this->entity = $entity;
+        parent::__construct($entity);
         $this->keys = $keys;
     }
 }

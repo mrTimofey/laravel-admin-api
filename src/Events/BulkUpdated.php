@@ -2,20 +2,15 @@
 
 namespace MrTimofey\LaravelAdminApi\Events;
 
-class BulkUpdated
+class BulkUpdated extends ModelEvent
 {
-    /**
-     * @var string
-     */
-    public $entity;
-
     /**
      * @var array
      */
     public $changes;
 
     public function __construct(string $entity, array $changes) {
-        $this->entity = $entity;
+        parent::__construct($entity);
         $this->changes = $changes;
     }
 }

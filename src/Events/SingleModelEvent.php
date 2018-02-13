@@ -2,19 +2,21 @@
 
 namespace MrTimofey\LaravelAdminApi\Events;
 
-abstract class SingleModelEvent {
-    /**
-     * @var string
-     */
-    public $entity;
-
+abstract class SingleModelEvent extends ModelEvent
+{
     /**
      * @var mixed
      */
     public $key;
 
-    public function __construct(string $entity, $key) {
+    public function __construct(string $entity, $key)
+    {
+        parent::__construct($entity);
         $this->entity = $entity;
-        $this->key = $key;
+    }
+
+    public function getModelInstance()
+    {
+        return parent::getModel()->newQuery()->find($this->key);
     }
 }

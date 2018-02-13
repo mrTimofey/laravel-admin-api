@@ -2,13 +2,8 @@
 
 namespace MrTimofey\LaravelAdminApi\Events;
 
-class BulkActionCalled
+class BulkActionCalled extends ModelEvent
 {
-    /**
-     * @var string
-     */
-    public $entity;
-
     /**
      * Action name
      * @var array
@@ -16,7 +11,7 @@ class BulkActionCalled
     public $action;
 
     public function __construct(string $entity, string $action) {
-        $this->entity = $entity;
+        parent::__construct($entity);
         $this->action = $action;
     }
 }
