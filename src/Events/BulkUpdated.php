@@ -9,8 +9,15 @@ class BulkUpdated extends ModelEvent
      */
     public $changes;
 
-    public function __construct(string $entity, array $changes) {
-        parent::__construct($entity);
+    public function __construct(string $entity, $userKey, array $changes) {
+        parent::__construct($entity, $userKey);
         $this->changes = $changes;
+    }
+
+    public function getArgs(): ?array
+    {
+        return [
+            'changes' => $this->changes
+        ];
     }
 }

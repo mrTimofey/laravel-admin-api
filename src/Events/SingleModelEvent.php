@@ -9,10 +9,10 @@ abstract class SingleModelEvent extends ModelEvent
      */
     public $key;
 
-    public function __construct(string $entity, $key)
+    public function __construct(string $entity, $userKey, $key)
     {
-        parent::__construct($entity);
-        $this->entity = $entity;
+        parent::__construct($entity, $userKey);
+        $this->key = $key;
     }
 
     public function getModelInstance()

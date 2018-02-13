@@ -872,10 +872,21 @@ class ModelHandler
         }
         $item->saveOrFail();
         foreach ($relations as $name => [$relation, $value]) {
+            $relationChanges = null;
             if ($relation instanceof BelongsToMany) {
-                $changes[$name] = $relation->sync($value);
+                $relationChanges = $relation->sync($value);
             } elseif ($relation instanceof HasMany) {
-                $changes[$name] = $this->syncHasMany($relation, $value);
+                $relationChanges = $this->syncHasMany($relation, $value);
+            }
+
+            if ($relationChanges && !empty($relationChanges) &&
+                (
+                    !empty($relationChanges['attached']) ||
+                    !empty($relationChanges['detached']) ||
+                    !empty($relationChanges['updated'])
+                )
+            ) {
+                $changes[$name] = $relationChanges;
             }
         }
 

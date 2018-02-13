@@ -62,7 +62,7 @@ class Crud extends Base
         $items = $q->forPage(
             $page = $this->page(),
             $perPage = $this->perPage()
-        )->get()->map(function(Model $item) use ($handler) {
+        )->get()->map(function (Model $item) use ($handler) {
             return $handler->transformIndexItem($item);
         });
         return $this->paginatedResponse(
@@ -109,7 +109,7 @@ class Crud extends Base
         }
         $handler->authorize($action);
         $res = $handler->$method();
-        event(new BulkActionCalled($modelName, $action));
+        event(new BulkActionCalled($modelName, $this->req->user()->getKey(), $action));
         return $this->jsonResponse($res);
     }
 
@@ -135,7 +135,7 @@ class Crud extends Base
         }
         $handler->authorize($action);
         $res = $handler->$method();
-        event(new ModelActionCalled($modelName, $instance->getKey(), $action));
+        event(new ModelActionCalled($modelName, $this->req->user()->getKey(), $instance->getKey(), $action));
         return $this->jsonResponse($res);
     }
 
@@ -156,7 +156,7 @@ class Crud extends Base
         $handler = $this->resolveHandler($instance, $modelName);
         $handler->authorize('create');
         $item = $handler->create();
-        event(new ModelCreated($modelName, $item->getKey()));
+        event(new ModelCreated($modelName, $this->req->user()->getKey(), $item->getKey()));
         $handler->setItem($item->fresh());
         return $this->jsonResponse($handler->transformItem());
     }
@@ -179,7 +179,10 @@ class Crud extends Base
         $handler = $this->resolveHandler($item, $modelName);
         $handler->authorize('update');
         $handler->update();
-        event(new ModelUpdated($modelName, $item->getKey(), $handler->getLastSaveChanges()));
+        $changes = $handler->getLastSaveChanges();
+        if (!empty($changes)) {
+            event(new ModelUpdated($modelName, $this->req->user()->getKey(), $item->getKey(), $changes));
+        }
         $handler->setItem($item->fresh());
         return $this->jsonResponse($handler->transformItem());
     }
@@ -201,7 +204,10 @@ class Crud extends Base
         $handler = $this->resolveHandler($item, $modelName);
         $handler->authorize('update');
         $handler->fastUpdate();
-        event(new ModelUpdated($modelName, $item->getKey(), $handler->getLastSaveChanges()));
+        $changes = $handler->getLastSaveChanges();
+        if (!empty($changes)) {
+            event(new ModelUpdated($modelName, $this->req->user()->getKey(), $item->getKey(), $changes));
+        }
         $handler->setItem($item->fresh());
         return $this->jsonResponse($handler->transformIndexItem());
     }
@@ -222,7 +228,7 @@ class Crud extends Base
         $handler = $this->resolveHandler($item, $modelName);
         $handler->authorize('destroy');
         $handler->destroy();
-        event(new ModelDestroyed($modelName, $id));
+        event(new ModelDestroyed($modelName, $this->req->user()->getKey(), $id));
     }
 
     /**
@@ -239,7 +245,7 @@ class Crud extends Base
         $handler = $this->resolveHandler($instance, $modelName);
         $handler->authorize('destroy');
         $destroyed = $handler->bulkDestroy($this->req->get('keys'));
-        event(new BulkDestroyed($modelName, $destroyed));
+        event(new BulkDestroyed($modelName, $this->req->user()->getKey(), $destroyed));
     }
 
     /**
@@ -256,6 +262,8 @@ class Crud extends Base
         $handler = $this->resolveHandler($instance, $modelName);
         $handler->authorize('update');
         $changes = $handler->bulkUpdate();
-        event(new BulkUpdated($modelName, $changes));
+        if (!empty($changes)) {
+            event(new BulkUpdated($modelName, $this->req->user()->getKey(), $changes));
+        }
     }
 }

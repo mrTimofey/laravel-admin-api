@@ -8,10 +8,10 @@ class BulkActionCalled extends ModelEvent
      * Action name
      * @var array
      */
-    public $action;
+    public $actionName;
 
-    public function __construct(string $entity, string $action) {
-        parent::__construct($entity);
-        $this->action = $action;
+    public function __construct(string $entity, $userKey, string $name) {
+        parent::__construct($entity, $userKey);
+        $this->actionName = $name;
     }
 }

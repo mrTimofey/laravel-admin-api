@@ -17,8 +17,15 @@ class ModelUpdated extends SingleModelEvent
      */
     public $changes;
 
-    public function __construct(string $entity, $key, array $changes) {
-        parent::__construct($entity, $key);
+    public function __construct(string $entity, $userKey, $key, array $changes) {
+        parent::__construct($entity, $key, $userKey);
         $this->changes = $changes;
+    }
+
+    public function getArgs(): ?array
+    {
+        return [
+            'changes' => $this->changes
+        ];
     }
 }

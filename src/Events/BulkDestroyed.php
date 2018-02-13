@@ -10,8 +10,15 @@ class BulkDestroyed extends ModelEvent
      */
     public $keys;
 
-    public function __construct(string $entity, array $keys) {
-        parent::__construct($entity);
+    public function __construct(string $entity, $userKey, array $keys) {
+        parent::__construct($entity, $userKey);
         $this->keys = $keys;
+    }
+
+    public function getArgs(): ?array
+    {
+        return [
+            'keys' => $this->keys
+        ];
     }
 }
