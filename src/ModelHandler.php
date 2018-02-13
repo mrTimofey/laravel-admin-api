@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 use MrTimofey\LaravelAdminApi\Contracts\ConfiguresAdminHandler;
+use MrTimofey\LaravelAdminApi\Contracts\HasCustomChanges;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
@@ -888,6 +889,11 @@ class ModelHandler
             ) {
                 $changes[$name] = $relationChanges;
             }
+        }
+
+        if ($item instanceof HasCustomChanges) {
+            /** @noinspection AdditionOperationOnArraysInspection */
+            $changes += $item->getCustomChanges();
         }
 
         // set changes
