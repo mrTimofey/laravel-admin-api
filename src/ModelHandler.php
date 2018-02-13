@@ -627,6 +627,7 @@ class ModelHandler
 
     /**
      * Apply simple sorting based on request query string.
+     * Scope named orderBy{field} will be used instead if exists.
      * Syntax:
      *  - sort[field] - order by asc
      *  - sort[field]=asc|desc|0|1 - (0 - desc, 1 - asc)
@@ -645,7 +646,12 @@ class ModelHandler
                     $asc = $v === '0' || $v === 'asc';
                 }
 
-                $q->orderBy($field, $asc ? 'asc' : 'desc');
+                $scopeMethod = 'scopeOrderBy' . studly_case($field);
+                if (method_exists($model = $q->getModel(), $scopeMethod)) {
+                    $model->$scopeMethod($q, $asc);
+                } else {
+                    $q->orderBy($field, $asc ? 'asc' : 'desc');
+                }
             }
         }
     }
