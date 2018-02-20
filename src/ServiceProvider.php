@@ -28,13 +28,20 @@ class ServiceProvider extends Base
     {
         $this->publishes([__DIR__ . '/../config.php' => config_path('admin_api.php')], 'config');
         $this->loadViewsFrom(__DIR__ . '/../views', 'admin_api');
-        $this->loadTranslationsFrom(__DIR__.'/../lang', 'admin_api');
+        $this->loadTranslationsFrom(__DIR__ . '/../lang', 'admin_api');
+        $this->registerImagePipe();
+        $this->registerRoutes();
+    }
+
+    protected function registerImagePipe(): void
+    {
         $config = $this->app->make('config');
         $this->config = $config->get('admin_api');
         $pipes = $config->get('aio_images.pipes', []);
-        $pipes['admin-thumb'] = $this->config['thumbnail_pipe'] ?? [['heighten', 120]];
-        $config->set('aio_images.pipes', $pipes);
-        $this->registerRoutes();
+        if (empty($pipes['admin-thumb'])) {
+            $pipes['admin-thumb'] = $this->config['thumbnail_pipe'] ?? [['heighten', 120]];
+            $config->set('aio_images.pipes', $pipes);
+        }
     }
 
     protected function registerRoutes(): void

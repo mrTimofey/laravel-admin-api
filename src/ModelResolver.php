@@ -100,6 +100,7 @@ class ModelResolver implements Contract
 
     /**
      * @inheritdoc
+     * @throws \RuntimeException
      */
     public function getMeta(): array
     {
