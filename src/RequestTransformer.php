@@ -13,28 +13,10 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 class RequestTransformer
 {
     /**
-     * File upload path
-     * @var string
-     */
-    protected $uploadPath;
-
-    /**
-     * Public uploaded files path
-     * @var string
-     */
-    protected $publicPath;
-
-    /**
      * Custom transformers
      * @var callable[]
      */
     protected $customTransformers = [];
-
-    public function __construct(string $uploadPath, string $publicPath)
-    {
-        $this->uploadPath = $uploadPath;
-        $this->publicPath = $publicPath;
-    }
 
     /**
      * Register custom transformer.
@@ -82,9 +64,7 @@ class RequestTransformer
      */
     protected function upload(UploadedFile $file): string
     {
-        $name = time() . str_random(12) . '.' . ($file->getClientOriginalExtension() ?: $file->guessExtension());
-        $file->move($this->uploadPath, $name);
-        return $this->publicPath . '/' . $name;
+        return app('admin_api:upload')($file);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace MrTimofey\LaravelAdminApi;
 
+use Illuminate\Http\UploadedFile;
 use MrTimofey\LaravelAdminApi\Contracts\ModelResolver as ModelResolverContract;
 use Illuminate\Support\ServiceProvider as Base;
 
@@ -21,6 +22,7 @@ class ServiceProvider extends Base
     {
         $this->mergeConfigFrom(__DIR__ . '/../config.php', 'admin_api');
         $this->registerModelResolver();
+        $this->registerUploadFunction();
         $this->registerRequestTransformer();
     }
 
@@ -87,7 +89,9 @@ class ServiceProvider extends Base
             $router->get('wysiwyg/images/browse', 'Wysiwyg@browser');
             $router->post('wysiwyg/images/upload', 'Wysiwyg@upload');
 
-            $router->post('gallery', 'Gallery@upload');
+            $router->post('upload/files', 'AjaxUpload@uploadFiles');
+            $router->post('upload/images', 'AjaxUpload@uploadImages');
+            $router->post('gallery', 'AjaxUpload@uploadImages');
         });
     }
 
@@ -98,13 +102,25 @@ class ServiceProvider extends Base
         });
     }
 
+    protected function registerUploadFunction(): void
+    {
+        $this->app->singleton('admin_api:upload', function() {
+            $config = $this->config['upload'];
+            return function(UploadedFile $file, ?string $name = null) use ($config) {
+                if (!$name) {
+                    $name = time() . str_random(12) . '.' . ($file->getClientOriginalExtension() ?: $file->guessExtension());
+                }
+                /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
+                $file->move(rtrim($config['path'], '/'), $name);
+                return rtrim($config['public_path'], '/') . '/' . $name;
+            };
+        });
+    }
+
     public function registerRequestTransformer(): void
     {
         $this->app->singleton(RequestTransformer::class, function () {
-            return new RequestTransformer(
-                $this->config['upload']['path'],
-                $this->config['upload']['public_path']
-            );
+            return new RequestTransformer();
         });
     }
 }

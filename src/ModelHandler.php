@@ -805,6 +805,7 @@ class ModelHandler
                 }
                 $rules = $presentRules;
             }
+            /** @noinspection PhpUndefinedMethodInspection */
             $this->req->validate($rules, $messages, $titles);
         }
     }
