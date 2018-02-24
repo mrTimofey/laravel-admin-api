@@ -48,14 +48,8 @@ class ServiceProvider extends Base
 
     protected function registerRoutes(): void
     {
-        if (str_contains($this->app->version(), 'Lumen')) {
-            $router = $this->app;
-            $router->get($this->config['frontend_path'] . '[/{rest:.*}]', $this->controllersNamespace . '\View@app');
-        } else {
-            $router = $this->app->make('router');
-            $router->get($this->config['frontend_path'] . '/{rest?}', $this->controllersNamespace . '\View@app')
-                ->where('rest', '.*');
-        }
+        $lumen = str_contains($this->app->version(), 'Lumen');
+        $router = $this->app->make('router');
 
         $router->group([
             'namespace' => $this->controllersNamespace,
@@ -93,6 +87,13 @@ class ServiceProvider extends Base
             $router->post('upload/images', 'AjaxUpload@uploadImages');
             $router->post('gallery', 'AjaxUpload@uploadImages');
         });
+
+        if ($lumen) {
+            $router->get($this->config['frontend_path'] . '[/{rest:.*}]', $this->controllersNamespace . '\View@app');
+        } else {
+            $router->get($this->config['frontend_path'] . '/{rest?}', $this->controllersNamespace . '\View@app')
+                ->where('rest', '.*');
+        }
     }
 
     protected function registerModelResolver(): void
