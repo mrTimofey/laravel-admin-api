@@ -33,7 +33,6 @@ class ModelResolver implements Contract
         'index',
         'item',
         'create',
-        'simpleCreate',
         'update',
         'destroy'
     ];
@@ -109,7 +108,7 @@ class ModelResolver implements Contract
             /** @var Model $model */
             $model = new $class;
 
-            // default url chunk is same as table name with underscores replaced by dashes
+            // default url chunk is same as a table name with underscores replaced by dashes
             $name = is_numeric($k) ? str_replace('_', '-', $model->getTable()) : $k;
             $handler = $this->resolveHandler($name, $model);
 

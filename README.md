@@ -76,6 +76,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Http\Request;
 use MrTimofey\LaravelAdminApi\Contracts\ConfiguresAdminHandler;
 use MrTimofey\LaravelAdminApi\ModelHandler;
 
@@ -107,20 +108,26 @@ class Post extends Model implements ConfiguresAdminHandler
 			// placeholders can be used, see more: https://mr-timofey.gitbooks.io/vue-admin/placeholders.html
 			->setItemTitle('Editing post #{{ id }}')
 
-			// allow only these methods (everything allowed by default)
+			// allow only these methods (everything is allowed by default)
 			->allowActions(['index', 'item', 'create', 'update', 'destroy'])
 			// ...or use policies instead
 			->usePolicies(true,
-				// options policy methods prefix (Policy::adminActionIndex, Policy::adminActionCreate, etc.)
+				// optional policy method prefix (Policy::adminActionIndex, Policy::adminActionCreate, etc.)
 				'adminAction')
 
+			->addPreQueryModifier(function(Builder $q, Request $req): void {
+			    // modify index query just after Model::newQuery() is called
+			})
+			->addPostQueryModifier(function(Builder $q,Request $req): void {
+				// modify index query just before execution
+			})
 			// automatically search with LIKE
 			->setSearchableFields(['title', 'summary'])
 			// ...or/and set custom search callback
 			->setSearchCallback(function(
-			    \Illuminate\Database\Eloquent\Builder $q,
-			    \Illuminate\Http\Request $req,
-			    array $searchableFields) {
+			    Builder $q,
+			    Request $req,
+			    array $searchableFields): void {
 			    	$q->searchLikeAGod($req->get('search'));
 			    })
 			
@@ -156,6 +163,7 @@ class Post extends Model implements ConfiguresAdminHandler
 			        'title' => 'Attach tags',
 			        // 'type' => 'relation', // not necessary if field name is same as a relation method
 			        // 'entity' => 'tags', // tags should be added to api_admin.models config
+			        // placeholders can be used, see more: https://mr-timofey.gitbooks.io/vue-admin/placeholders.html
 			        'display' => '{{ name }}',
 			        'allowCreate' => true,
 			        'createField' => 'name',

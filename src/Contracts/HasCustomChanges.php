@@ -2,6 +2,10 @@
 
 namespace MrTimofey\LaravelAdminApi\Contracts;
 
+/**
+ * Provide additional information about model changes on ModelUpdated event.
+ * Do not include dirty attributes and changed relations here.
+ */
 interface HasCustomChanges
 {
     /**

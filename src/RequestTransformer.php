@@ -10,6 +10,9 @@ use MrTimofey\LaravelAioImages\ImageModel as Image;
 use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
+/**
+ * Transforms request data to
+ */
 class RequestTransformer
 {
     /**
@@ -21,7 +24,7 @@ class RequestTransformer
     /**
      * Register custom transformer.
      * @param string $type field type
-     * @param callable $callback function($value, $name, Request, $type)
+     * @param callable $callback function(mixed $value, string $name, Request $request, string $type)
      */
     public function extend(string $type, callable $callback): void
     {

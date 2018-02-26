@@ -69,7 +69,11 @@ return [
     'thumbnail_pipe' => [['heighten', 120]],
 
     /**
-     * List model classes here
+     * Models used in API.
+     * Each array item can have an optional string key to provide a URL chunk used in API routes.
+     * Default url chunk is same as a table name with underscores replaced by dashes.
+     * You can also define multiple items with same model class and different keys to provide different contexts.
+     * Call ModelHandler::getName() to get current context.
      */
     'models' => [
         // App\User::class

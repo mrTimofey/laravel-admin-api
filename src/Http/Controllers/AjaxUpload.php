@@ -39,8 +39,9 @@ class AjaxUpload extends Base {
     public function uploadFiles(): JsonResponse
     {
         $files = [];
+        $uploader = app('admin_api:upload');
         foreach ($this->getFiles() as $file) {
-            $files[] = app('admin_api:upload')($file);
+            $files[] = $uploader($file);
         }
         return $this->jsonResponse($files);
     }
