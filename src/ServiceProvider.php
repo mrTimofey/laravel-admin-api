@@ -50,6 +50,7 @@ class ServiceProvider extends Base
     {
         $lumen = str_contains($this->app->version(), 'Lumen');
         $router = $this->app->make('router');
+        $apiPrefix = $this->config['api_prefix'];
 
         $router->group([
             'namespace' => $this->controllersNamespace,
@@ -61,7 +62,7 @@ class ServiceProvider extends Base
 
         $router->group([
             'namespace' => $this->controllersNamespace,
-            'prefix' => $this->config['api_prefix'],
+            'prefix' => $apiPrefix,
             'middleware' => $this->config['api_middleware']
         ], function () use ($router) {
             $router->delete('auth', 'Auth@logout');
@@ -88,12 +89,16 @@ class ServiceProvider extends Base
             $router->post('gallery', 'AjaxUpload@uploadImages');
         });
 
-        if ($lumen) {
-            $router->get($this->config['frontend_path'] . '[/{rest:.*}]', $this->controllersNamespace . '\View@app');
-        } else {
-            $router->get($this->config['frontend_path'] . '/{rest?}', $this->controllersNamespace . '\View@app')
-                ->where('rest', '.*');
-        }
+        // register catch-all route on booted event to prevent triggering before any other application route
+        $this->app->booted(function () use ($lumen, $router) {
+            if ($lumen) {
+                $router->get($this->config['frontend_path'] . '[/{rest:.*}]',
+                    $this->controllersNamespace . '\View@app');
+            } else {
+                $router->get($this->config['frontend_path'] . '/{rest?}', $this->controllersNamespace . '\View@app')
+                    ->where('rest', '.*');
+            }
+        });
     }
 
     protected function registerModelResolver(): void
@@ -105,9 +110,9 @@ class ServiceProvider extends Base
 
     protected function registerUploadFunction(): void
     {
-        $this->app->singleton('admin_api:upload', function() {
+        $this->app->singleton('admin_api:upload', function () {
             $config = $this->config['upload'];
-            return function(UploadedFile $file, ?string $name = null) use ($config) {
+            return function (UploadedFile $file, ?string $name = null) use ($config) {
                 if (!$name) {
                     $name = time() . str_random(12) . '.' . ($file->getClientOriginalExtension() ?: $file->guessExtension());
                 }
