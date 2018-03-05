@@ -90,27 +90,27 @@ return [
         [
             'title' => 'Users',
             'entity' => 'users',
-            'fa' => 'user'
+            'icon' => 'fas fa-user'
         ],
 
         // custom absolute link
         [
             'title' => 'Back to the site',
             'path' => '/',
-            'fa' => 'arrow-left'
+            'icon' => 'fas fa-arrow-left'
         ],
 
         // custom admin route
         [
             'title' => 'Edit user [1]',
             'route' => '/entity/users/item/1',
-            'fa' => 'user-o'
+            'icon' => 'far fa-user'
         ],
 
         // link group
         [
             'title' => 'Group',
-            'fa' => 'plus-square',
+            'icon' => 'fas fa-plus-square',
             'items' => [
                 [
                     'title' => 'Sublink',
