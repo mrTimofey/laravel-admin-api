@@ -4,7 +4,6 @@ namespace MrTimofey\LaravelAdminApi\Http\Controllers;
 
 use MrTimofey\LaravelAdminApi\Events\BulkActionCalled;
 use MrTimofey\LaravelAdminApi\Events\BulkDestroyed;
-use MrTimofey\LaravelAdminApi\Events\BulkUpdated;
 use MrTimofey\LaravelAdminApi\Events\ModelActionCalled;
 use MrTimofey\LaravelAdminApi\Events\ModelCreated;
 use MrTimofey\LaravelAdminApi\Events\ModelDestroyed;
@@ -246,24 +245,5 @@ class Crud extends Base
         $handler->authorize('destroy');
         $destroyed = $handler->bulkDestroy($this->req->get('keys'));
         event(new BulkDestroyed($modelName, $this->req->user()->getKey(), $destroyed));
-    }
-
-    /**
-     * Set particular fields values on multiple model items.
-     * @param string $modelName
-     * @throws \RuntimeException
-     * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
-     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
-     */
-    public function bulkUpdate(string $modelName): void
-    {
-        $instance = $this->resolveModel($modelName);
-        $handler = $this->resolveHandler($instance, $modelName);
-        $handler->authorize('update');
-        $changes = $handler->bulkUpdate();
-        if (!empty($changes)) {
-            event(new BulkUpdated($modelName, $this->req->user()->getKey(), $changes));
-        }
     }
 }

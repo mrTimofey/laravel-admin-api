@@ -945,16 +945,6 @@ class ModelHandler
     }
 
     /**
-     * Update multiple items.
-     * @return array
-     */
-    public function bulkUpdate(): array
-    {
-        // TODO
-        return [];
-    }
-
-    /**
      * Destroy item.
      * @throws \Exception
      */
