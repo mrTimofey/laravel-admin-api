@@ -813,13 +813,15 @@ class ModelHandler
     /**
      * Sync HasMany relation and return changes.
      * @param HasMany $rel
-     * @param $ids
+     * @param array|null $ids
      * @return array
      */
     protected function syncHasMany(HasMany $rel, $ids): array
     {
         $res = ['attached' => [], 'detached' => []];
-        if (!\is_array($ids) || empty($ids)) {
+        if ($ids === null) {
+            $ids = [];
+        } elseif (!\is_array($ids)) {
             return $res;
         }
 
