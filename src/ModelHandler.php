@@ -823,7 +823,7 @@ class ModelHandler
         if ($ids === null) {
             $ids = [];
         } elseif (!\is_array($ids)) {
-            return $res;
+            $ids = [$ids];
         }
 
         $fk = $rel->getForeignKeyName();
@@ -832,11 +832,16 @@ class ModelHandler
         /** @var Collection $toDelete */
         $toDelete = $rel->get()->keyBy($rel->getRelated()->getKeyName());
 
+        /** @var Model[] $toSyncItems */
+        $toSyncItems = [];
+
         /** @var Model $item */
         foreach ($toSync as $item) {
             if ($item->getAttribute($fk) !== $parentKey) {
                 $item->setAttribute($fk, $parentKey);
-                $item->save();
+                // items syncing will be actually sync after deleting relations
+                // to prevent database unique checks failure
+                $toSyncItems[] = $item;
                 $res['attached'][] = $item->getKey();
             }
             if ($toDelete->has($item->getKey())) {
@@ -849,6 +854,10 @@ class ModelHandler
             $item->setAttribute($fk, null);
             $item->save();
             $res['detached'][] = $item->getKey();
+        }
+
+        foreach ($toSyncItems as $item) {
+            $item->save();
         }
 
         return $res;
