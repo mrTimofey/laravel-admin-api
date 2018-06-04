@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 use Illuminate\Http\Request;
 use MrTimofey\LaravelAdminApi\Contracts\ConfiguresAdminHandler;
 use MrTimofey\LaravelAdminApi\Contracts\HasCustomChanges;
@@ -812,11 +813,11 @@ class ModelHandler
 
     /**
      * Sync HasMany relation and return changes.
-     * @param HasMany $rel
+     * @param HasOneOrMany $rel
      * @param array|null $ids
      * @return array
      */
-    protected function syncHasMany(HasMany $rel, $ids): array
+    protected function syncHasOneOrMany(HasOneOrMany $rel, $ids): array
     {
         $res = ['attached' => [], 'detached' => []];
         if ($ids === null) {
@@ -886,8 +887,8 @@ class ModelHandler
             $relationChanges = null;
             if ($relation instanceof BelongsToMany) {
                 $relationChanges = $relation->sync($value);
-            } elseif ($relation instanceof HasMany) {
-                $relationChanges = $this->syncHasMany($relation, $value);
+            } elseif ($relation instanceof HasOneOrMany) {
+                $relationChanges = $this->syncHasOneOrMany($relation, $value);
             }
 
             if ($relationChanges && !empty($relationChanges) &&
