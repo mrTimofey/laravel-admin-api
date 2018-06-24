@@ -1,5 +1,7 @@
 API backend for administration panels based on [vue-admin-front](https://github.com/mrTimofey/vue-admin) package.
 
+[Demo](http://admin.shit-free.space).
+
 ## Requirements
 
 * PHP 7.1
