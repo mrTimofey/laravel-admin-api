@@ -64,7 +64,7 @@ Admin API will try to guess attribute types and generate field names by capitali
 * belongsTo, hasMany and belongsToMany relations will just work
 
 You can also implement a `MrTimofey\LaravelAdminApi\Contracts\ConfiguresAdminHandler` interface and define a
-`configuresAdminHandler($handler)` method to make things more controllable.
+`configureAdminHandler($handler)` method to make things more controllable.
 
 Available field types and their options are described in
 [vue-admin-front field types docs](https://mr-timofey.gitbooks.io/vue-admin/content/fields.html#available-field-types).
@@ -86,7 +86,7 @@ class Post extends Model implements ConfiguresAdminHandler
 {
     protected $casts = [
         'published' => 'bool'
-	];
+    ];
     
     public function category(): BelongsTo
     {
@@ -103,103 +103,103 @@ class Post extends Model implements ConfiguresAdminHandler
         return $q->whereRaw('draft IS TRUE');
     }
     
-	public function configureAdminHandler(ModelHandler $handler): void
-	{
-		$handler->setTitle('Posts')
-			->setCreateTitle('Creating new post')
-			// placeholders can be used, see more: https://mr-timofey.gitbooks.io/vue-admin/placeholders.html
-			->setItemTitle('Editing post #{{ id }}')
+    public function configureAdminHandler(ModelHandler $handler): void
+    {
+        $handler->setTitle('Posts')
+            ->setCreateTitle('Creating new post')
+            // placeholders can be used, see more: https://mr-timofey.gitbooks.io/vue-admin/placeholders.html
+            ->setItemTitle('Editing post #{{ id }}')
 
-			// allow only these methods (everything is allowed by default)
-			->allowActions(['index', 'item', 'create', 'update', 'destroy'])
-			// ...or use policies instead
-			->usePolicies(true,
-				// optional policy method prefix (Policy::adminActionIndex, Policy::adminActionCreate, etc.)
-				'adminAction')
+            // allow only these methods (everything is allowed by default)
+            ->allowActions(['index', 'item', 'create', 'update', 'destroy'])
+            // ...or use policies instead
+            ->usePolicies(true,
+                // optional policy method prefix (Policy::adminActionIndex, Policy::adminActionCreate, etc.)
+                'adminAction')
 
-			->addPreQueryModifier(function(Builder $q, Request $req): void {
-			    // modify index query just after Model::newQuery() is called
-			})
-			->addPostQueryModifier(function(Builder $q,Request $req): void {
-				// modify index query just before execution
-			})
-			// automatically search with LIKE
-			->setSearchableFields(['title', 'summary'])
-			// ...or/and set custom search callback
-			->setSearchCallback(function(
-			    Builder $q,
-			    Request $req,
-			    array $searchableFields): void {
-			    	$q->searchLikeAGod($req->get('search'));
-			    })
-			
-			// index page filters
-			->setFilterFields([
-			    // auto relation filter
-				'category',
-				// see more about available prefix modifiers in ModelHandler::applyFilters sources
-				'>~created_at' => [
-					'title' => 'Created after',
-				    'type' => 'datetime'
-				],
-				// checkbox, applies scopeOnlyDrafts when checked
-				'drafts' => [
-				    'scope' => 'onlyDrafts',
-				    'type' => 'switcher'
-				]
-			])
-			
-			->setIndexFields([
-			    'id',
-			    'title',
-			    // will be automatically formatted as datetime
-			    'created_at'
-			])
-			
-			->setItemFields([
-			    'title',
-			    // this just works
-			    'category', // categories should be added to api_admin.models config
-			    // this should just work as well but we want some customizations
-			    'tags' => [
-			        'title' => 'Attach tags',
-			        // 'type' => 'relation', // not necessary if field name is same as a relation method
-			        // 'entity' => 'tags', // tags should be added to api_admin.models config
-			        // placeholders can be used, see more: https://mr-timofey.gitbooks.io/vue-admin/placeholders.html
-			        'display' => '{{ name }}',
-			        'allowCreate' => true,
-			        'createField' => 'name',
-			        'createDefaults' => ['description' => 'New tag'],
-			        'queryParams' => [
-			            'sort' => ['sort' => 'asc']
-					]
-				],
-				'content' => ['type' => 'wysiwyg'],
-				'published' // $casts will automatically set the right field type for you
-			])
-			
-			// you can set validation rules
-			->setValidationRules([
-			    'tags' => ['array', 'between:3,8'],
-			    'category' => ['required']
-			])
-			// ...or/and custom validation callback
-			->setValidationCallback(
-			    /**
-				 * @throws \Illuminate\Validation\ValidationException
-				 */
-			    function(
-					\Illuminate\Http\Request $req,
-					array $rules,
-					array $messages,
-					// gathered from item fields configuration
-					array $titles
-				) {
-					$req->validate([ /* whatever */ ]);
-				})
-			->setValidationMessages([
-			    'category.required' => 'No category - no post'
-			]);
-	}
+            ->addPreQueryModifier(function(Builder $q, Request $req): void {
+                // modify index query just after Model::newQuery() is called
+            })
+            ->addPostQueryModifier(function(Builder $q,Request $req): void {
+                // modify index query just before execution
+            })
+            // automatically search with LIKE
+            ->setSearchableFields(['title', 'summary'])
+            // ...or/and set custom search callback
+            ->setSearchCallback(function(
+                Builder $q,
+                Request $req,
+                array $searchableFields): void {
+                    $q->searchLikeAGod($req->get('search'));
+                })
+            
+            // index page filters
+            ->setFilterFields([
+                // auto relation filter
+                'category',
+                // see more about available prefix modifiers in ModelHandler::applyFilters sources
+                '>~created_at' => [
+                    'title' => 'Created after',
+                    'type' => 'datetime'
+                ],
+                // checkbox, applies scopeOnlyDrafts when checked
+                'drafts' => [
+                    'scope' => 'onlyDrafts',
+                    'type' => 'switcher'
+                ]
+            ])
+            
+            ->setIndexFields([
+                'id',
+                'title',
+                // will be automatically formatted as datetime
+                'created_at'
+            ])
+            
+            ->setItemFields([
+                'title',
+                // this just works
+                'category', // categories should be added to api_admin.models config
+                // this should just work as well but we want some customizations
+                'tags' => [
+                    'title' => 'Attach tags',
+                    // 'type' => 'relation', // not necessary if field name is same as a relation method
+                    // 'entity' => 'tags', // tags should be added to api_admin.models config
+                    // placeholders can be used, see more: https://mr-timofey.gitbooks.io/vue-admin/placeholders.html
+                    'display' => '{{ name }}',
+                    'allowCreate' => true,
+                    'createField' => 'name',
+                    'createDefaults' => ['description' => 'New tag'],
+                    'queryParams' => [
+                        'sort' => ['sort' => 'asc']
+                    ]
+                ],
+                'content' => ['type' => 'wysiwyg'],
+                'published' // $casts will automatically set the right field type for you
+            ])
+            
+            // you can set validation rules
+            ->setValidationRules([
+                'tags' => ['array', 'between:3,8'],
+                'category' => ['required']
+            ])
+            // ...or/and custom validation callback
+            ->setValidationCallback(
+                /**
+                 * @throws \Illuminate\Validation\ValidationException
+                 */
+                function(
+                    \Illuminate\Http\Request $req,
+                    array $rules,
+                    array $messages,
+                    // gathered from item fields configuration
+                    array $titles
+                ) {
+                    $req->validate([ /* whatever */ ]);
+                })
+            ->setValidationMessages([
+                'category.required' => 'No category - no post'
+            ]);
+    }
 }
 ```
