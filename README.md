@@ -68,6 +68,8 @@ You can also implement a `MrTimofey\LaravelAdminApi\Contracts\ConfiguresAdminHan
 
 Available field types and their options are described in
 [vue-admin-front field types docs](https://mr-timofey.gitbooks.io/vue-admin/content/fields.html#available-field-types).
+Same for fields formatting for model index page
+[vue-admin-front display types docs](https://mr-timofey.gitbooks.io/vue-admin/content/displays.html#available-display-types).
 
 Usage example:
 
@@ -119,9 +121,15 @@ class Post extends Model implements ConfiguresAdminHandler
 
             ->addPreQueryModifier(function(Builder $q, Request $req): void {
                 // modify index query just after Model::newQuery() is called
+                $user = $req->user();
+                if ($user->role !== 'god') {
+                    $q->where('author_user_id', $user->getKey());
+                }
             })
             ->addPostQueryModifier(function(Builder $q,Request $req): void {
                 // modify index query just before execution
+                // useful if you want to set default sort order
+                $q->orderByDesc('created_at');
             })
             // automatically search with LIKE
             ->setSearchableFields(['title', 'summary'])
@@ -137,7 +145,7 @@ class Post extends Model implements ConfiguresAdminHandler
             ->setFilterFields([
                 // auto relation filter
                 'category',
-                // see more about available prefix modifiers in ModelHandler::applyFilters sources
+                // see more about available prefix modifiers in ModelHandler::applyFilters phpdoc
                 '>~created_at' => [
                     'title' => 'Created after',
                     'type' => 'datetime'
@@ -148,14 +156,17 @@ class Post extends Model implements ConfiguresAdminHandler
                     'type' => 'switcher'
                 ]
             ])
-            
+
+			// index page table columns
             ->setIndexFields([
                 'id',
                 'title',
-                // will be automatically formatted as datetime
+                // will be automatically formatted as datetime if $this->timestamps === true
+                // or if $this->dates includes 'created_at' field
                 'created_at'
             ])
-            
+
+			// item creating/editing form fields
             ->setItemFields([
                 'title',
                 // this just works
@@ -167,23 +178,33 @@ class Post extends Model implements ConfiguresAdminHandler
                     // 'entity' => 'tags', // tags should be added to api_admin.models config
                     // placeholders can be used, see more: https://mr-timofey.gitbooks.io/vue-admin/placeholders.html
                     'display' => '{{ name }}',
+                    // relation widget will allow user to create new tags in-place
                     'allowCreate' => true,
+                    // this field will be filled with the widget's search box input text
                     'createField' => 'name',
+                    // fill some other fields with fixed values while creating new tag
                     'createDefaults' => ['description' => 'New tag'],
+                    // customize suggestions query
                     'queryParams' => [
                         'sort' => ['sort' => 'asc']
                     ]
                 ],
                 'content' => ['type' => 'wysiwyg'],
-                'published' // $casts will automatically set the right field type for you
+                // $casts => ['published' => 'bool'] will automatically set the right field type for you (checkbox)
+                'published'
             ])
-            
-            // you can set validation rules
+
+            // creating/editing validation rules (use $this to refer to the currently editing model instance)
             ->setValidationRules([
                 'tags' => ['array', 'between:3,8'],
-                'category' => ['required']
+                'category' => ['required'],
+                'some_unique_field' => [
+                    'required',
+                    'unique,' . $this->getTable() . ',some_unique_field' .
+                    	($this->exists ? (',' . $this->getKey() . ',' . $this->getKeyName()) : '')
+				]
             ])
-            // ...or/and custom validation callback
+            // ...or/and defined custom validation callback
             ->setValidationCallback(
                 /**
                  * @throws \Illuminate\Validation\ValidationException
@@ -197,9 +218,41 @@ class Post extends Model implements ConfiguresAdminHandler
                 ) {
                     $req->validate([ /* whatever */ ]);
                 })
+			// override default error messages
             ->setValidationMessages([
                 'category.required' => 'No category - no post'
             ]);
     }
 }
 ```
+## Events
+
+Every action within an administrative panel can be tracked and processed with the Laravel's event system.
+Available events:
+
+```php
+<?php
+
+namespace MrTimofey\LaravelAdminApi\Events;
+
+// abstract base class for all events (holds user identifier)
+ModelEvent::class;
+
+// single model instance action events
+SingleModelEvent::class; // abstract base class for single model instance action events (holds item identifier)
+ModelCreated::class;
+ModelUpdated::class; // holds attributes changes, more info in phpdoc of this class
+ModelDestroyed::class;
+
+// bulk destroy (holds destroyed instances' identifiers)
+BulkDestroyed::class;
+```
+
+### Tracking changes for ModelUpdated event
+
+By default `ModelUpdated` will track only instance attributes (using Eloquent's `Model::getDirty()`)
+method and relation changes.
+
+You can implement `MrTimofey\LaravelAdminApi\Contracts\HasCustomChanges` interface and define `getCustomChanges()`
+method to enrich `ModelUpdated::$changes` field with any additional information you want to track. Default format
+is to return array `['field_name' => [$oldValue, $newValue], ...]`.
