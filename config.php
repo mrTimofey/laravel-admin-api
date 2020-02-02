@@ -44,8 +44,6 @@ return [
         'image_upload_size' => [1280, null],
         // upload image validation
         'image_upload_rules' => ['image', 'max:4096'],
-        // external css file path for wysiwyg (use .cke_editable selector as root within this file)
-        'css' => null
     ],
 
     'upload' => [
