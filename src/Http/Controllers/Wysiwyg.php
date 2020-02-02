@@ -10,9 +10,8 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 class Wysiwyg extends Base
 {
-    public function upload(ImageManager $intervention): string
+    public function upload()
     {
-        $funcNum = $this->req->get('CKEditorFuncNum');
         try {
             $this->req->validate(['upload' => config('api_admin.wysiwyg.image_upload_rules', 'image')]);
             $file = $this->req->file('upload');
@@ -27,14 +26,13 @@ class Wysiwyg extends Base
                 $interventionImage->fit($size[0], $size[1] ?? null);
                 $interventionImage->save($target);
             }
-            return '<script>window.parent.CKEDITOR.tools.callFunction(\'' . $funcNum . '\', \'' . $image->getPath() . '\');</script>';
+            return $this->jsonResponse(['url' => $image->getPath()]);
         } catch (ValidationException $e) {
-            return '<script>window.parent.CKEDITOR.tools.callFunction(\'' . $funcNum . '\', null, ' .
-                json_encode(implode(', ', $e->errors())) . ');</script>';
+            return $this->jsonResponse(['error' => ['message' => implode(', ', $e->errors())]]);
         } catch (FileException $e) {
-            return '<script>window.parent.CKEDITOR.tools.callFunction(\'' . $funcNum . '\', null, \'Could not upload image...\');</script>';
+            return $this->jsonResponse(['error' => ['message' => trans('admin_api::messaages.wysiwyg_upload_file_error')]]);
         } catch (\Throwable $e) {
-            return '<script>window.parent.CKEDITOR.tools.callFunction(\'' . $funcNum . '\', null, \'Something went wrong...\');</script>';
+            return $this->jsonResponse(['error' => ['message' => trans('admin_api::messaages.wysiwyg_upload_server_error')]]);
         }
     }
 
