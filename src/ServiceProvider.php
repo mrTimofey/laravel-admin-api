@@ -2,9 +2,11 @@
 
 namespace MrTimofey\LaravelAdminApi;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Http\UploadedFile;
 use MrTimofey\LaravelAdminApi\Contracts\ModelResolver as ModelResolverContract;
 use Illuminate\Support\ServiceProvider as Base;
+use Illuminate\Support\Str;
 
 class ServiceProvider extends Base
 {
@@ -26,6 +28,9 @@ class ServiceProvider extends Base
         $this->registerRequestTransformer();
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function boot(): void
     {
         $this->publishes([__DIR__ . '/../config.php' => config_path('admin_api.php')], 'config');
@@ -35,6 +40,9 @@ class ServiceProvider extends Base
         $this->registerRoutes();
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     protected function registerImagePipe(): void
     {
         $config = $this->app->make('config');
@@ -46,9 +54,12 @@ class ServiceProvider extends Base
         }
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     protected function registerRoutes(): void
     {
-        $lumen = str_contains($this->app->version(), 'Lumen');
+        $lumen = Str::contains($this->app->version(), 'Lumen');
         $router = $this->app->make('router');
         $apiPrefix = $this->config['api_prefix'];
 
@@ -64,7 +75,7 @@ class ServiceProvider extends Base
             'namespace' => $this->controllersNamespace,
             'prefix' => $apiPrefix,
             'middleware' => $this->config['api_middleware']
-        ], function () use ($router) {
+        ], static function () use ($router) {
             $router->delete('auth', 'Auth@logout');
 
             $router->get('meta', 'Meta@meta');
@@ -111,11 +122,10 @@ class ServiceProvider extends Base
     {
         $this->app->singleton('admin_api:upload', function () {
             $config = $this->config['upload'];
-            return function (UploadedFile $file, ?string $name = null) use ($config) {
+            return static function (UploadedFile $file, ?string $name = null) use ($config) {
                 if (!$name) {
-                    $name = time() . str_random(12) . '.' . ($file->getClientOriginalExtension() ?: $file->guessExtension());
+                    $name = time() . Str::random(12) . '.' . ($file->getClientOriginalExtension() ?: $file->guessExtension());
                 }
-                /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
                 $file->move(rtrim($config['path'], '/'), $name);
                 return rtrim($config['public_path'], '/') . '/' . $name;
             };
@@ -124,7 +134,7 @@ class ServiceProvider extends Base
 
     public function registerRequestTransformer(): void
     {
-        $this->app->singleton(RequestTransformer::class, function () {
+        $this->app->singleton(RequestTransformer::class, static function () {
             return new RequestTransformer();
         });
     }

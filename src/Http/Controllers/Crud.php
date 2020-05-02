@@ -1,7 +1,12 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 namespace MrTimofey\LaravelAdminApi\Http\Controllers;
 
+use Exception;
+use Illuminate\Database\Eloquent\MassAssignmentException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Str;
+use InvalidArgumentException;
 use MrTimofey\LaravelAdminApi\Events\BulkActionCalled;
 use MrTimofey\LaravelAdminApi\Events\BulkDestroyed;
 use MrTimofey\LaravelAdminApi\Events\ModelActionCalled;
@@ -12,7 +17,10 @@ use MrTimofey\LaravelAdminApi\ModelHandler;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
+use RuntimeException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Throwable;
 
 class Crud extends Base
 {
@@ -26,8 +34,8 @@ class Crud extends Base
      * @param string $modelName
      * @param mixed|null $id
      * @return Model
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
-     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+     * @throws ModelNotFoundException
+     * @throws NotFoundHttpException
      */
     protected function resolveModel(string $modelName, $id = null): Model
     {
@@ -45,11 +53,11 @@ class Crud extends Base
      * Get model paginated results.
      * @param string $modelName
      * @return JsonResponse
-     * @throws \RuntimeException
-     * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
-     * @throws \InvalidArgumentException
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
-     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+     * @throws RuntimeException
+     * @throws AccessDeniedHttpException
+     * @throws InvalidArgumentException
+     * @throws ModelNotFoundException
+     * @throws NotFoundHttpException
      */
     public function index(string $modelName): JsonResponse
     {
@@ -61,7 +69,7 @@ class Crud extends Base
         $items = $q->forPage(
             $page = $this->page(),
             $perPage = $this->perPage()
-        )->get()->map(function (Model $item) use ($handler) {
+        )->get()->map(static function (Model $item) use ($handler) {
             return $handler->transformIndexItem($item);
         });
         return $this->paginatedResponse(
@@ -74,10 +82,10 @@ class Crud extends Base
      * @param string $modelName
      * @param $id
      * @return JsonResponse
-     * @throws \RuntimeException
-     * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
-     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+     * @throws RuntimeException
+     * @throws AccessDeniedHttpException
+     * @throws ModelNotFoundException
+     * @throws NotFoundHttpException
      */
     public function item(string $modelName, $id): JsonResponse
     {
@@ -92,16 +100,16 @@ class Crud extends Base
      * @param string $modelName
      * @param string $action action name
      * @return JsonResponse
-     * @throws \RuntimeException
-     * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
-     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+     * @throws RuntimeException
+     * @throws AccessDeniedHttpException
+     * @throws ModelNotFoundException
+     * @throws NotFoundHttpException
      */
     public function bulkAction(string $modelName, string $action): JsonResponse
     {
         $instance = $this->resolveModel($modelName);
         $handler = $this->resolveHandler($instance, $modelName);
-        $action = studly_case($action);
+        $action = Str::studly($action);
         $method = 'bulk' . $action;
         if (!method_exists($handler, $method)) {
             throw new NotFoundHttpException($modelName . ' handler does not have method ' . $method);
@@ -118,16 +126,16 @@ class Crud extends Base
      * @param $id
      * @param string $action action name
      * @return JsonResponse
-     * @throws \RuntimeException
-     * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
-     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+     * @throws RuntimeException
+     * @throws AccessDeniedHttpException
+     * @throws ModelNotFoundException
+     * @throws NotFoundHttpException
      */
     public function itemAction(string $modelName, $id, string $action): JsonResponse
     {
         $instance = $this->resolveModel($modelName, $id);
         $handler = $this->resolveHandler($instance, $modelName);
-        $action = studly_case($action);
+        $action = Str::studly($action);
         $method = 'action' . $action;
         if (!method_exists($handler, $method)) {
             throw new NotFoundHttpException($modelName . ' handler does not have method ' . $method);
@@ -142,12 +150,12 @@ class Crud extends Base
      * Create new model item.
      * @param string $modelName
      * @return JsonResponse
-     * @throws \RuntimeException
-     * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
-     * @throws \Throwable
-     * @throws \Illuminate\Database\Eloquent\MassAssignmentException
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
-     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+     * @throws RuntimeException
+     * @throws AccessDeniedHttpException
+     * @throws Throwable
+     * @throws MassAssignmentException
+     * @throws ModelNotFoundException
+     * @throws NotFoundHttpException
      */
     public function create(string $modelName): JsonResponse
     {
@@ -165,12 +173,12 @@ class Crud extends Base
      * @param string $modelName
      * @param $id
      * @return JsonResponse
-     * @throws \RuntimeException
-     * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
-     * @throws \Throwable
-     * @throws \Illuminate\Database\Eloquent\MassAssignmentException
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
-     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+     * @throws RuntimeException
+     * @throws AccessDeniedHttpException
+     * @throws Throwable
+     * @throws MassAssignmentException
+     * @throws ModelNotFoundException
+     * @throws NotFoundHttpException
      */
     public function update(string $modelName, $id): JsonResponse
     {
@@ -191,11 +199,11 @@ class Crud extends Base
      * @param string $modelName
      * @param $id
      * @return JsonResponse
-     * @throws \RuntimeException
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
-     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
-     * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
-     * @throws \Throwable
+     * @throws RuntimeException
+     * @throws ModelNotFoundException
+     * @throws NotFoundHttpException
+     * @throws AccessDeniedHttpException
+     * @throws Throwable
      */
     public function fastUpdate(string $modelName, $id): JsonResponse
     {
@@ -215,11 +223,11 @@ class Crud extends Base
      * Delete model item.
      * @param string $modelName
      * @param $id
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
-     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
-     * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws ModelNotFoundException
+     * @throws NotFoundHttpException
+     * @throws AccessDeniedHttpException
      */
     public function destroy(string $modelName, $id): void
     {
@@ -233,10 +241,10 @@ class Crud extends Base
     /**
      * Delete multiple model items.
      * @param string $modelName
-     * @throws \RuntimeException
-     * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
-     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     * @throws RuntimeException
+     * @throws AccessDeniedHttpException
+     * @throws NotFoundHttpException
+     * @throws ModelNotFoundException
      */
     public function bulkDestroy(string $modelName): void
     {

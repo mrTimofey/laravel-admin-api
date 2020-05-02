@@ -1,10 +1,9 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 namespace MrTimofey\LaravelAdminApi\Events;
 
 use Illuminate\Auth\TokenGuard;
 use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Database\Eloquent\Model;
 use MrTimofey\LaravelAdminApi\Contracts\ModelResolver;
 

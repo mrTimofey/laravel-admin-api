@@ -11,6 +11,7 @@ class Auth extends Base
 
     protected function guard(): TokenGuard
     {
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return auth($this->guard ?? config('admin_api.api_guard', 'api'));
     }
 }

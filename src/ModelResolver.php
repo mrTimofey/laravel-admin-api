@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use MrTimofey\LaravelAdminApi\Contracts\HasAdminHandler;
 use MrTimofey\LaravelAdminApi\Contracts\ModelResolver as Contract;
+use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
@@ -99,7 +100,7 @@ class ModelResolver implements Contract
 
     /**
      * @inheritdoc
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function getMeta(): array
     {
@@ -117,7 +118,7 @@ class ModelResolver implements Contract
                 // map 'actionName' => true|false (action permitted or not)
                 'permissions' => array_combine(
                     static::$actions,
-                    array_map(function ($action) use ($handler) {
+                    array_map(static function ($action) use ($handler) {
                         try {
                             $handler->authorize($action);
                             return true;

@@ -2,6 +2,7 @@
 
 namespace MrTimofey\LaravelAdminApi\Http\Controllers;
 
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Intervention\Image\ImageManager;
@@ -16,7 +17,7 @@ class Wysiwyg extends Base
             $this->req->validate(['upload' => config('api_admin.wysiwyg.image_upload_rules', 'image')]);
             $file = $this->req->file('upload');
             $image = Image::upload($file, [
-                'name' => 'wysiwyg-' . str_random(6) . time(),
+                'name' => 'wysiwyg-' . Str::random(6) . time(),
                 'ext' => $file->getClientOriginalExtension()
             ]);
             $size = config('api_admin.wysiwyg.image_upload_size');

@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 namespace MrTimofey\LaravelAdminApi\Events;
 
@@ -17,6 +17,6 @@ abstract class SingleModelEvent extends ModelEvent
 
     public function getModelInstance()
     {
-        return parent::getModel()->newQuery()->find($this->key);
+        return $this->getModel()->newQuery()->find($this->key);
     }
 }

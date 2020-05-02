@@ -1,7 +1,8 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 namespace MrTimofey\LaravelAdminApi;
 
+use Exception;
 use Illuminate\Contracts\Auth\Access\Authorizable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -11,9 +12,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use MrTimofey\LaravelAdminApi\Contracts\ConfiguresAdminHandler;
 use MrTimofey\LaravelAdminApi\Contracts\HasCustomChanges;
+use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Throwable;
+use function count;
+use function in_array;
+use function is_array;
 
 /**
  * This class handles all actions performed with any model.
@@ -148,7 +155,7 @@ class ModelHandler
         $this->name = $name;
         // workaround to make multipart/form-data requests preserve data types by using JSON
         // frontend can send any files + __json_data field to pass any other data
-        if ($req->filled('__json_data') && starts_with($req->header('Content-Type', ''), 'multipart/form-data')) {
+        if ($req->filled('__json_data') && Str::startsWith($req->header('Content-Type', ''), 'multipart/form-data')) {
             $req = clone $req;
             $req->request->add(json_decode($req->get('__json_data'), true));
         }
@@ -373,7 +380,7 @@ class ModelHandler
         if ($this->indexFields) {
             return $this->indexFields;
         }
-        if (($visible = $this->item->getVisible()) && \count($visible) > 0) {
+        if (($visible = $this->item->getVisible()) && count($visible) > 0) {
             return $this->prepareFields($visible, ['sortable' => true]);
         }
         return null;
@@ -389,7 +396,7 @@ class ModelHandler
         if ($this->itemFields) {
             return $this->itemFields;
         }
-        if (($fillable = $this->item->getFillable()) && \count($fillable) > 0) {
+        if (($fillable = $this->item->getFillable()) && count($fillable) > 0) {
             return $this->prepareFields($fillable);
         }
         return null;
@@ -407,7 +414,7 @@ class ModelHandler
 
     public function isSearchable(): bool
     {
-        return $this->searchableFields && \count($this->searchableFields) > 0 || $this->searchCallback;
+        return ($this->searchableFields && count($this->searchableFields) > 0) || $this->searchCallback;
     }
 
     public function getLastSaveChanges(): ?array
@@ -419,8 +426,8 @@ class ModelHandler
      * Authorize action.
      * Throw 403 exception if user is not permitted to perform this action.
      * @param string $action
-     * @throws \RuntimeException user does not implement Authorizable interface
-     * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
+     * @throws RuntimeException user does not implement Authorizable interface
+     * @throws AccessDeniedHttpException
      */
     public function authorize(string $action): void
     {
@@ -428,15 +435,15 @@ class ModelHandler
             /** @var Authorizable $user */
             $user = $this->req->user();
             if (!$user instanceof Authorizable) {
-                throw new \RuntimeException('User object must implement ' . Authorizable::class . ' to be checked with policies');
+                throw new RuntimeException('User object must implement ' . Authorizable::class . ' to be checked with policies');
             }
             if (!$user->can(
-                $this->policiesPrefix ? ($this->policiesPrefix . studly_case($action)) : $action,
+                $this->policiesPrefix ? ($this->policiesPrefix . Str::studly($action)) : $action,
                 $this->item)) {
                 throw new AccessDeniedHttpException($action . ' action on ' . $this->name . ' is not authorized');
             }
         }
-        if ($this->abilities && !\in_array($action, $this->abilities, true)) {
+        if ($this->abilities && !in_array($action, $this->abilities, true)) {
             throw new AccessDeniedHttpException($action . ' action on ' . $this->name . ' is not allowed');
         }
     }
@@ -476,11 +483,11 @@ class ModelHandler
 
             // try to set type
             if (!isset($conf['type'])) {
-                if (\in_array($field, $dates, true)) {
+                if (in_array($field, $dates, true)) {
                     $conf['type'] = 'datetime';
                 } elseif (isset($casts[$field])) {
                     $conf['type'] = $casts[$field];
-                } elseif (\in_array($field, $hidden, true)) {
+                } elseif (in_array($field, $hidden, true)) {
                     $conf['type'] = 'password';
                 } elseif (method_exists($this->item, $field)) {
                     $conf['type'] = 'relation';
@@ -496,7 +503,7 @@ class ModelHandler
 
             // generate title
             if (!isset($conf['title']) && !isset($conf['placeholder']) && !isset($conf['label'])) {
-                $conf['title'] = title_case(preg_replace('/[\_\-\s]+/', ' ', $field));
+                $conf['title'] = Str::title(preg_replace('/[_\-\s]+/', ' ', $field));
             }
 
             $realFields[$field] = $conf;
@@ -541,20 +548,20 @@ class ModelHandler
                 $not = false;
                 $op = '=';
 
-                if (starts_with($field, '!')) {
+                if (Str::startsWith($field, '!')) {
                     $not = true;
                     $op = '!=';
                     $field = substr($field, 1);
-                } elseif (starts_with($field, '>~')) {
+                } elseif (Str::startsWith($field, '>~')) {
                     $op = '>=';
                     $field = substr($field, 2);
-                } elseif (starts_with($field, '<~')) {
+                } elseif (Str::startsWith($field, '<~')) {
                     $op = '<=';
                     $field = substr($field, 2);
-                } elseif (starts_with($field, '>')) {
+                } elseif (Str::startsWith($field, '>')) {
                     $op = '>';
                     $field = substr($field, 1);
-                } elseif (starts_with($field, '<')) {
+                } elseif (Str::startsWith($field, '<')) {
                     $op = '<';
                     $field = substr($field, 1);
                 }
@@ -562,12 +569,12 @@ class ModelHandler
                 if (method_exists($this->item, $field)) {
                     if ($value === null) {
                         $not ? $q->doesntHave($field) : $q->has($field);
-                    } elseif (!\is_array($value) || !empty($value)) {
-                        $q->whereHas($field, function (Builder $q) use ($value) {
+                    } elseif (!is_array($value) || !empty($value)) {
+                        $q->whereHas($field, static function (Builder $q) use ($value) {
                             $q->whereKey($value);
                         });
                     }
-                } elseif (\is_array($value)) {
+                } elseif (is_array($value)) {
                     $q->whereIn($field, $value, 'and', $not);
                 } elseif ($value === null) {
                     $q->whereNull($field, 'and', !$not);
@@ -592,11 +599,11 @@ class ModelHandler
                 if (is_numeric($scope)) {
                     $scope = $params;
                     $params = [];
-                } elseif (!\is_array($params)) {
+                } elseif (!is_array($params)) {
                     $params = explode(',', $params);
                 }
 
-                $scopeMethod = 'scope' . studly_case($scope);
+                $scopeMethod = 'scope' . Str::studly($scope);
                 if (method_exists($model = $q->getModel(), $scopeMethod)) {
                     $model->$scopeMethod($q, ...$params);
                 }
@@ -647,7 +654,7 @@ class ModelHandler
                     $asc = $v === '0' || $v === 'asc';
                 }
 
-                $scopeMethod = 'scopeOrderBy' . studly_case($field);
+                $scopeMethod = 'scopeOrderBy' . Str::studly($field);
                 if (method_exists($model = $q->getModel(), $scopeMethod)) {
                     $model->$scopeMethod($q, $asc);
                 } else {
@@ -735,12 +742,10 @@ class ModelHandler
                     $related = $item->getRelation($field);
                     if ($fullRelations && empty($config['editable'])) {
                         $relations[$field] = $related;
+                    } elseif ($related instanceof Collection) {
+                        $relations[$field] = $related->modelKeys();
                     } else {
-                        if ($related instanceof Collection) {
-                            $relations[$field] = $related->modelKeys();
-                        } else {
-                            $relations[$field] = $related ? $related->getKey() : null;
-                        }
+                        $relations[$field] = $related ? $related->getKey() : null;
                     }
                 } else {
                     $visible[] = $field;
@@ -752,7 +757,7 @@ class ModelHandler
             $item->setVisible($visible);
             $item->setAppends($appends);
         }
-        $item->addVisible($item->getKeyName());
+        $item->makeVisible($item->getKeyName());
         return array_merge($item->toArray(), $relations);
     }
 
@@ -782,10 +787,10 @@ class ModelHandler
         $rules = $this->validationRules;
         $messages = $this->validationMessages;
         $titles = collect($this->getIndexFields() ?? [])->merge($fields ?? [])
-            ->map(function ($field) {
+            ->map(static function ($field) {
                 return $field['title'] ?? $field['label'] ?? $field['placeholder'] ?? null;
             })
-            ->filter(function ($title) {
+            ->filter(static function ($title) {
                 return $title;
             })
             ->all();
@@ -806,7 +811,6 @@ class ModelHandler
                 }
                 $rules = $presentRules;
             }
-            /** @noinspection PhpUndefinedMethodInspection */
             $this->req->validate($rules, $messages, $titles);
         }
     }
@@ -822,14 +826,13 @@ class ModelHandler
         $res = ['attached' => [], 'detached' => []];
         if ($ids === null) {
             $ids = [];
-        } elseif (!\is_array($ids)) {
+        } elseif (!is_array($ids)) {
             $ids = [$ids];
         }
 
         $fk = $rel->getForeignKeyName();
         $parentKey = $rel->getParentKey();
         $toSync = $rel->getRelated()->newQuery()->find((array)$ids);
-        /** @var Collection $toDelete */
         $toDelete = $rel->get()->keyBy($rel->getRelated()->getKeyName());
 
         /** @var Model[] $toSyncItems */
@@ -867,7 +870,7 @@ class ModelHandler
      * @param Model $item
      * @param array $fields
      * @return Model
-     * @throws \Throwable
+     * @throws Throwable
      */
     protected function fillAndSave(Model $item, array $fields): Model
     {
@@ -875,7 +878,7 @@ class ModelHandler
         $relations = [];
         $changes = [];
         foreach ($data as $name => $value) {
-            $relationName = camel_case($name);
+            $relationName = Str::camel($name);
             if (method_exists($item, $relationName) && !$item->hasSetMutator($relationName)) {
                 $relation = $item->$relationName();
                 if ($relation instanceof BelongsTo) {
@@ -924,7 +927,7 @@ class ModelHandler
 
     /**
      * @return Model
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function create(): Model
     {
@@ -933,7 +936,7 @@ class ModelHandler
     }
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function update(): void
     {
@@ -946,7 +949,7 @@ class ModelHandler
      * Request data must contain:
      *  - __field = field name
      *  - [files__]field_name = mixed|UploadedFile
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function fastUpdate(): void
     {
@@ -958,7 +961,7 @@ class ModelHandler
 
     /**
      * Destroy item.
-     * @throws \Exception
+     * @throws Exception
      */
     public function destroy(): void
     {

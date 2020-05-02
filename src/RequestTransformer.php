@@ -1,14 +1,23 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 namespace MrTimofey\LaravelAdminApi;
 
+use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
+use InvalidArgumentException;
 use MrTimofey\LaravelAioImages\ImageModel as Image;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Throwable;
+use function is_array;
+use function is_bool;
+use function is_float;
+use function is_int;
 
 /**
  * Transforms request data to
@@ -47,14 +56,14 @@ class RequestTransformer
         }
 
         // call local method
-        $method = 'process' . studly_case($type);
+        $method = 'process' . Str::studly($type);
         if (method_exists($this, $method)) {
             return $this->$method($name, $req, $item);
         }
 
         // return as-is
         $v = $req->get($name);
-        if (\is_int($v) || \is_float($v) || \is_bool($v)) {
+        if (is_int($v) || is_float($v) || is_bool($v)) {
             return $v;
         }
         return $v ?: null;
@@ -63,7 +72,7 @@ class RequestTransformer
     /**
      * @param UploadedFile $file
      * @return string
-     * @throws \Symfony\Component\HttpFoundation\File\Exception\FileException
+     * @throws FileException
      */
     protected function upload(UploadedFile $file): string
     {
@@ -77,11 +86,12 @@ class RequestTransformer
      * @param Model $item
      * @param bool $image is image
      * @return null|string|array
-     * @throws \InvalidArgumentException
-     * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
-     * @throws \Exception
-     * @throws \Symfony\Component\HttpFoundation\File\Exception\FileException
-     * @throws \Throwable
+     * @throws InvalidArgumentException
+     * @throws BadRequestHttpException
+     * @throws Exception
+     * @throws FileException
+     * @throws Throwable
+     * @noinspection PhpUnusedParameterInspection
      */
     protected function processFile(string $name, Request $req, Model $item, bool $image = false)
     {
@@ -89,13 +99,13 @@ class RequestTransformer
         if (!$files) {
             return $req->get($name) ?: null;
         }
-        if (\is_array($files)) {
+        if (is_array($files)) {
             $res = [];
             foreach ($files as $file) {
                 try {
                     $uploaded = $image ? Image::upload($file)->getKey() : $this->upload($file);
                     $req[] = $uploaded;
-                } catch (\Throwable $e) {}
+                } catch (Throwable $e) {}
             }
             return $res;
         }
@@ -112,11 +122,11 @@ class RequestTransformer
      * @param Request $req
      * @param Model $item
      * @return array|null|string
-     * @throws \InvalidArgumentException
-     * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
-     * @throws \Exception
-     * @throws \Symfony\Component\HttpFoundation\File\Exception\FileException
-     * @throws \Throwable
+     * @throws InvalidArgumentException
+     * @throws BadRequestHttpException
+     * @throws Exception
+     * @throws FileException
+     * @throws Throwable
      */
     protected function processImage(string $name, Request $req, Model $item)
     {
@@ -132,7 +142,7 @@ class RequestTransformer
         if ($images === $rel->pluck($rel->getRelated()->getKeyName())->all()) {
             return $images;
         }
-        return array_combine($images, array_map(function ($sort) {
+        return array_combine($images, array_map(static function ($sort) {
             return ['sort' => (int)$sort];
         }, array_keys($images)));
     }

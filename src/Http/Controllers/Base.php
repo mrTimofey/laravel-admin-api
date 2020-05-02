@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Collection;
 use MrTimofey\LaravelAdminApi\Contracts\ModelResolver;
+use function count;
 
 abstract class Base extends Controller
 {
@@ -53,14 +54,13 @@ abstract class Base extends Controller
      * @param Paginator|\Illuminate\Database\Query\Builder|Builder $p
      * @param array|Collection|null $add
      * @param int|null $perPage
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     protected function paginatedResponse($p, $add = null, ?int $perPage = null): JsonResponse
     {
         // suppose $p is a query builder
         if (!$p instanceof Paginator) {
             /** @var Builder $p */
-            /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
             $p = $p->paginate($this->perPage($perPage));
         }
         /** @var Paginator $p */
@@ -80,7 +80,7 @@ abstract class Base extends Controller
         }
 
         // merge with additional data if any
-        if ($add && \count($add)) {
+        if ($add && count($add)) {
             $data = array_merge(
                 $data,
                 $add instanceof Collection ? $add->all() : $add
