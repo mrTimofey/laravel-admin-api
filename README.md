@@ -89,22 +89,22 @@ class Post extends Model implements ConfiguresAdminHandler
     protected $casts = [
         'published' => 'bool'
     ];
-    
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
-    
+
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);
     }
-    
+
     public function scopeOnlyDrafts(Builder $q): Builder
     {
         return $q->whereRaw('draft IS TRUE');
     }
-    
+
     public function configureAdminHandler(ModelHandler $handler): void
     {
         $handler->setTitle('Posts')
@@ -140,7 +140,7 @@ class Post extends Model implements ConfiguresAdminHandler
                 array $searchableFields): void {
                     $q->searchLikeAGod($req->get('search'));
                 })
-            
+
             // index page filters
             ->setFilterFields([
                 // auto relation filter
@@ -163,7 +163,9 @@ class Post extends Model implements ConfiguresAdminHandler
                 'title',
                 // will be automatically formatted as datetime if $this->timestamps === true
                 // or if $this->dates includes 'created_at' field
-                'created_at'
+                'created_at',
+                // you can provide only title this way
+                'updated_at' => 'Last update date and time'
             ])
 
 			// item creating/editing form fields

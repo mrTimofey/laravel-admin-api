@@ -479,9 +479,11 @@ class ModelHandler
             if (is_numeric($field)) {
                 $field = $conf;
                 $conf = $default;
+            } elseif (is_string($conf)) {
+                $conf = $default + ['title' => $conf];
             }
 
-            // try to set type
+            // guess type
             if (!isset($conf['type'])) {
                 if (in_array($field, $dates, true)) {
                     $conf['type'] = 'datetime';
