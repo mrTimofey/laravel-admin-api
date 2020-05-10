@@ -645,6 +645,8 @@ class ModelHandler
      */
     protected function applySort(Builder $q): void
     {
+        $indexFields = $this->getIndexFields() ?? [];
+        $model = $q->getModel();
         if ($sort = $this->req->get('sort')) {
             $sort = (array)$sort;
             foreach ($sort as $k => $v) {
@@ -657,9 +659,18 @@ class ModelHandler
                 }
 
                 $scopeMethod = 'scopeOrderBy' . Str::studly($field);
-                if (method_exists($model = $q->getModel(), $scopeMethod)) {
+                if (method_exists($model, $scopeMethod)) {
                     $model->$scopeMethod($q, $asc);
                 } else {
+                    // try to guess a foreign key field name of the belongsTo relation
+                    if (!empty($indexFields[$field]['type']) &&
+                        $indexFields[$field]['type'] === 'relation' &&
+                        method_exists($model, $field)) {
+                        $relation = $model->$field();
+                        if ($relation instanceof BelongsTo) {
+                            $field = $relation->getForeignKeyName();
+                        }
+                    }
                     $q->orderBy($field, $asc ? 'asc' : 'desc');
                 }
             }
